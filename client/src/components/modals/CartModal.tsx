@@ -84,6 +84,8 @@ export function CartModal({ isOpen, onClose, onCheckout }: CartModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-lg bg-white/90 dark:bg-black/90 backdrop-blur-xl border border-white/20 shadow-xl shadow-emerald-500/10 ring-1 ring-emerald-400/20">
+        <DialogTitle className="sr-only">Shopping Cart</DialogTitle>
+        <DialogDescription className="sr-only">View and manage items in your shopping cart</DialogDescription>
         <div className="relative">
           <Button
             variant="ghost"
