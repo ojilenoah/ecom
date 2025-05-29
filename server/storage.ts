@@ -1,14 +1,5 @@
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
-import { eq, and, ilike, sql, desc } from "drizzle-orm";
+import { createClient } from '@supabase/supabase-js';
 import { 
-  users, 
-  products, 
-  cart, 
-  orders, 
-  ratings, 
-  vendor_profiles, 
-  settings,
   type User, 
   type InsertUser, 
   type Product, 
@@ -20,14 +11,14 @@ import {
 } from "@shared/schema";
 import bcrypt from "bcrypt";
 
-const connectionString = process.env.DATABASE_URL;
+const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-if (!connectionString) {
-  throw new Error("DATABASE_URL environment variable is required");
+if (!supabaseUrl || !supabaseKey) {
+  throw new Error("Supabase environment variables are required");
 }
 
-const client = postgres(connectionString);
-const db = drizzle(client);
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 export interface IStorage {
   // User authentication
@@ -69,16 +60,17 @@ export class SupabaseStorage implements IStorage {
   
   async authenticateUser(email: string, password: string): Promise<User | null> {
     try {
-      const [user] = await db
-        .select()
-        .from(users)
-        .where(eq(users.email, email))
+      const { data: users, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email)
         .limit(1);
 
-      if (!user) {
+      if (error || !users || users.length === 0) {
         return null;
       }
 
+      const user = users[0];
       const isValidPassword = await bcrypt.compare(password, user.password_hash);
       if (!isValidPassword) {
         return null;
