@@ -721,41 +721,6 @@ export class SupabaseStorage implements IStorage {
       return [];
     }
   }
-
-      // Get recent users
-      const { data: recentUsers, error: usersError } = await supabase
-        .from('users')
-        .select('name, created_at')
-        .order('created_at', { ascending: false })
-        .limit(5);
-
-      const activity = [];
-
-      if (recentOrders) {
-        activity.push(...recentOrders.map((order: any) => ({
-          type: 'order',
-          message: `Order placed: $${order.total}`,
-          timestamp: new Date(order.created_at).toLocaleString()
-        })));
-      }
-
-      if (recentUsers) {
-        activity.push(...recentUsers.map((user: any) => ({
-          type: 'user',
-          message: `New user registration: ${user.name}`,
-          timestamp: new Date(user.created_at).toLocaleString()
-        })));
-      }
-
-      // Sort by timestamp and return top 10
-      return activity
-        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-        .slice(0, 10);
-    } catch (error) {
-      console.error('Get recent activity error:', error);
-      return [];
-    }
-  }
 }
 
 export const storage = new SupabaseStorage();

@@ -44,12 +44,17 @@ export function VendorDashboard({ isOpen, onClose }: VendorDashboardProps) {
     'Office Supplies'
   ];
 
-  const { data: vendorStats } = useQuery({
+  const { data: vendorStats } = useQuery<{
+    revenue: string;
+    orders: number;
+    products: number;
+    rating: string;
+  }>({
     queryKey: ['/api/vendor/stats'],
     enabled: !!currentUser && currentUser.role === 'vendor',
   });
 
-  const { data: vendorProducts = [] } = useQuery({
+  const { data: vendorProducts = [] } = useQuery<any[]>({
     queryKey: ['/api/vendor/products'],
     enabled: !!currentUser && currentUser.role === 'vendor',
   });
@@ -352,6 +357,124 @@ export function VendorDashboard({ isOpen, onClose }: VendorDashboardProps) {
             </div>
           </div>
         </div>
+
+        {/* Product Creation/Edit Modal */}
+        {showAddProduct && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto scrollbar-hidden">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold">
+                  {editingProduct ? 'Edit Product' : 'Add New Product'}
+                </h3>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowAddProduct(false)}
+                  className="rounded-full"
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="productName">Product Name *</Label>
+                  <Input
+                    id="productName"
+                    value={productForm.name}
+                    onChange={(e) => setProductForm(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Enter product name"
+                    className="mt-2"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="productDescription">Description</Label>
+                  <Textarea
+                    id="productDescription"
+                    value={productForm.description}
+                    onChange={(e) => setProductForm(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Enter product description"
+                    className="mt-2"
+                    rows={3}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="productPrice">Price *</Label>
+                  <Input
+                    id="productPrice"
+                    type="number"
+                    step="0.01"
+                    value={productForm.price}
+                    onChange={(e) => setProductForm(prev => ({ ...prev, price: e.target.value }))}
+                    placeholder="0.00"
+                    className="mt-2"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="productCategory">Category *</Label>
+                  <Select value={productForm.category} onValueChange={(value) => setProductForm(prev => ({ ...prev, category: value }))}>
+                    <SelectTrigger className="mt-2">
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category} value={category}>
+                          {category}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="productStock">Stock</Label>
+                  <Input
+                    id="productStock"
+                    type="number"
+                    value={productForm.stock}
+                    onChange={(e) => setProductForm(prev => ({ ...prev, stock: e.target.value }))}
+                    placeholder="0"
+                    className="mt-2"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="productImage">Image URL</Label>
+                  <Input
+                    id="productImage"
+                    value={productForm.image_url}
+                    onChange={(e) => setProductForm(prev => ({ ...prev, image_url: e.target.value }))}
+                    placeholder="https://example.com/image.jpg"
+                    className="mt-2"
+                  />
+                </div>
+
+                <div className="flex space-x-3 pt-4">
+                  <Button
+                    onClick={handleSubmitProduct}
+                    disabled={createProductMutation.isPending || updateProductMutation.isPending}
+                    className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white"
+                  >
+                    {createProductMutation.isPending || updateProductMutation.isPending 
+                      ? 'Saving...' 
+                      : editingProduct ? 'Update Product' : 'Create Product'
+                    }
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowAddProduct(false)}
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
