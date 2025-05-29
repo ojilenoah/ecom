@@ -1,6 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Star } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { Product } from '@shared/schema';
 
 interface ProductCardProps {
@@ -9,8 +10,12 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, onClick }: ProductCardProps) {
-  const averageRating = 4.5; // TODO: Calculate from actual ratings
-  const reviewCount = 24; // TODO: Get from actual ratings
+  const { data: productRating } = useQuery<{ average_rating: number; review_count: number }>({
+    queryKey: ['/api/products', product.id, 'rating'],
+  });
+
+  const averageRating = productRating?.average_rating || 0;
+  const reviewCount = productRating?.review_count || 0;
 
   return (
     <Card 

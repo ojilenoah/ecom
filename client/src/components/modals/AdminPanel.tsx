@@ -376,7 +376,80 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
         return (
           <div>
             <h2 className="text-2xl font-bold mb-6">Platform Settings</h2>
-            <p className="text-gray-500">Platform configuration and settings would be implemented here.</p>
+            
+            <div className="space-y-6">
+              {/* General Settings */}
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6">
+                <h3 className="text-lg font-semibold mb-4">General Settings</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label htmlFor="maintenance">Maintenance Mode</Label>
+                      <p className="text-sm text-gray-500">Enable maintenance mode for platform updates</p>
+                    </div>
+                    <input type="checkbox" className="toggle" />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label htmlFor="registration">Allow User Registration</Label>
+                      <p className="text-sm text-gray-500">Allow new users to register accounts</p>
+                    </div>
+                    <input type="checkbox" defaultChecked className="toggle" />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label htmlFor="vendor-approval">Require Vendor Approval</Label>
+                      <p className="text-sm text-gray-500">Manually approve new vendor applications</p>
+                    </div>
+                    <input type="checkbox" defaultChecked className="toggle" />
+                  </div>
+                </div>
+              </div>
+              
+              {/* Payment Settings */}
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6">
+                <h3 className="text-lg font-semibold mb-4">Payment Settings</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="commission">Platform Commission (%)</Label>
+                    <Input id="commission" type="number" placeholder="5" className="mt-1" />
+                  </div>
+                  <div>
+                    <Label htmlFor="min-order">Minimum Order Amount</Label>
+                    <Input id="min-order" type="number" placeholder="10.00" className="mt-1" />
+                  </div>
+                </div>
+              </div>
+              
+              {/* Email Settings */}
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6">
+                <h3 className="text-lg font-semibold mb-4">Email Settings</h3>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="smtp-host">SMTP Host</Label>
+                    <Input id="smtp-host" placeholder="smtp.gmail.com" className="mt-1" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="smtp-port">SMTP Port</Label>
+                      <Input id="smtp-port" placeholder="587" className="mt-1" />
+                    </div>
+                    <div>
+                      <Label htmlFor="from-email">From Email</Label>
+                      <Input id="from-email" placeholder="noreply@softshop.com" className="mt-1" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex justify-end">
+                <Button className="bg-emerald-500 hover:bg-emerald-600 text-white">
+                  Save Settings
+                </Button>
+              </div>
+            </div>
           </div>
         );
       default:
