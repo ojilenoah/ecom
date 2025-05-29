@@ -30,10 +30,10 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
 
   const loginMutation = useMutation({
     mutationFn: async (data: { email: string; password: string }) => {
-      return apiRequest('POST', '/api/auth/login', data);
+      const response = await apiRequest('POST', '/api/auth/login', data);
+      return await response.json();
     },
-    onSuccess: (response) => {
-      const user = response.json();
+    onSuccess: (user) => {
       setCurrentUser(user);
       toast({
         title: 'Welcome back!',
@@ -52,10 +52,10 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
 
   const registerMutation = useMutation({
     mutationFn: async (data: { email: string; password: string; name: string; role: 'user' | 'vendor' }) => {
-      return apiRequest('POST', '/api/auth/register', data);
+      const response = await apiRequest('POST', '/api/auth/register', { ...data, password_hash: data.password });
+      return await response.json();
     },
-    onSuccess: (response) => {
-      const user = response.json();
+    onSuccess: (user) => {
       setCurrentUser(user);
       toast({
         title: 'Account created!',
