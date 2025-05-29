@@ -1,0 +1,193 @@
+## 🎯 Minimal E-commerce System — High-Level Functional Specification
+
+### 🛠️ Tech Stack Overview
+
+* **Frontend Framework**: Next.js (recommended for routing, SSR & Vercel compatibility) or Vite + React
+* **Styling**: Tailwind CSS + shadcn/ui (modern components, accessibility, ease of use)
+* **Authentication**: Supabase Auth (Email/Password only — no OAuth for simplicity)
+* **Database & Storage**: Supabase (PostgreSQL, Storage, RLS)
+* **Deployment**: Vercel (100% compatible, optimized)
+* **Design Aesthetic**: Minimalistic — ambient colors, squared-out UI cards with subtle bezels, both light and dark themes supported.
+
+---
+
+### 🔑 User Roles & Access
+
+#### 1. Normal Users
+
+* Browse products
+* View product in modal
+* Add to cart (cart modal)
+* Dummy checkout (modal)
+* View orders (profile page)
+* Update profile info
+* Submit product ratings
+
+#### 2. Vendors
+
+* Vendor dashboard: stats, product listings
+* Add/edit/delete products (in modals)
+* View orders placed on their products
+* Update vendor profile info
+
+#### 3. Admin (Hardcoded)
+
+* Email: `admin@gmail.com`
+* Password: `admin`
+* Admin dashboard:
+
+  * View all users & vendors
+  * Enable/disable users or products
+  * Approve vendor accounts
+  * Lock/unlock parts of database (e.g., maintenance mode toggle)
+  * View platform stats (users, orders, products)
+
+---
+
+### 📄 Pages Breakdown (Only Essential Pages)
+
+#### 1. `/` — Home Page
+
+* Grid layout of product cards
+* Filter by category
+* Search bar (debounced, minimal)
+* Clicking product opens modal:
+
+  * Product image, name, price, description
+  * Rating overview & add-to-cart
+  * Vendor info + basic stats
+
+#### 2. `/profile`
+
+* View and update user info (name, email, avatar)
+* View recent orders
+* Stats: total orders, average spend
+
+#### 3. `/vendor`
+
+* Vendor dashboard: sales stats, product list, revenue snapshot
+* Buttons to:
+
+  * Add product (opens modal)
+  * Edit/delete existing product
+  * View customer feedback/ratings
+
+#### 4. `/vendor/profile`
+
+* Update vendor bio, contact email, brand name, logo/avatar
+
+#### 5. `/admin`
+
+* Sidebar navigation (minimal)
+
+  * Dashboard (platform stats)
+  * Users (toggle active/inactive)
+  * Vendors (approval queue)
+  * Products (global view, disable/flag)
+  * Settings (platform-wide toggles)
+
+#### 6. `/auth` *(OPTIONAL — used for redirect fallback)*
+
+* If modals fail, fallback page for login/signup
+
+---
+
+### 🔒 Authentication & Authorization
+
+* **Supabase Auth**: Email/password
+* **Hardcoded Admin Auth**: Match `admin@gmail.com` + `admin` manually in UI + RLS
+* **Role field in Supabase `users` table**: 'user' | 'vendor' | 'admin'
+* Use `auth.uid()` in Supabase RLS to restrict actions
+
+**Modals for Auth**:
+
+* Login and Register open in a center-screen modal
+* After login: redirect to `/profile` or `/vendor` based on role
+
+---
+
+### 🛍️ Product Flow (Minimalist + Modal-Based)
+
+* **Product card**: Title, price, short description
+* **Click** → Opens modal with detailed info, carousel if multiple images
+* **Add to cart**: Adds item to Supabase `cart` table for current `user_id`
+
+#### Cart Modal:
+
+* Triggered by clicking cart icon
+* Minimal overlay showing products
+* Checkout → dummy order confirmation
+* Order stored in `orders` table with:
+
+  * User ID, product snapshot, total
+  * Dummy fulfillment\_time = 1 minute delay using client-side timer
+
+---
+
+### 💳 Payment & Fulfillment (Dummy Setup)
+
+* **Payments**: No real gateway
+
+  * Payment modal simulates input
+  * On submit, status changes to `paid`
+* **Fulfillment**:
+
+  * Simulate delay (setTimeout, 1 minute)
+  * Order moves to `fulfilled` status after delay
+  * Notification triggered via modal or toast
+
+---
+
+### 🌟 Ratings & Reviews
+
+* Authenticated users can rate a product only **after purchasing**
+* `ratings` table schema:
+
+  * id, user\_id, product\_id, rating (1–5), comment (optional), created\_at
+* Submit rating in modal shown under past orders
+* Rating summary shown on product modal (average, # of ratings)
+
+---
+
+### 🧱 Supabase Table Summary
+
+* `users` (id, email, role, name, avatar\_url)
+* `products` (id, vendor\_id, name, description, price, image\_url, category, stock)
+* `orders` (id, user\_id, items \[JSONB], total, status, created\_at)
+* `cart` (user\_id, product\_id, quantity)
+* `ratings` (user\_id, product\_id, rating, comment)
+* `vendor_profiles` (user\_id, brand\_name, logo\_url, contact\_email)
+* `settings` (key, value) — for maintenance flags, etc.
+
+---
+
+### 🎨 Design Style
+
+* Clean, ambient, no clutter
+* Square cards, rounded-edges (small radius)
+* Subtle shadows and borders
+* White background with light gray bezels (light mode)
+* Charcoal black with muted dark grays (dark mode)
+* Use Tailwind’s `dark:` support
+
+---
+
+### ✅ Vercel Compatibility
+
+* Uses **Next.js file-based routing** or Vite’s SPA model
+* No backend functions — all data via Supabase client
+* Uses **Supabase edge client** (fast, global, no SSR required)
+* Image optimization via Vercel Image CDN or Supabase Storage
+* Deploy with Git push → Vercel build pipeline
+
+---
+
+### 🚧 Notes for Development
+
+* Use **react-query** or **SWR** for data fetching with caching
+* All create/update actions handled via modals
+* Keep navigation simple: top navbar with logo, search, profile/cart icons
+* Role-based routing (redirect to `/profile`, `/vendor`, `/admin` after login)
+* Ensure **RLS policies in Supabase** restrict vendor, user, and admin actions appropriately
+
+---
