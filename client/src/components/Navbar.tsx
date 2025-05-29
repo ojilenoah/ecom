@@ -126,7 +126,7 @@ export function Navbar({
                     Profile
                   </DropdownMenuItem>
                   
-                  {currentUser.role === 'customer' && (
+                  {currentUser.role === 'user' && (
                     <DropdownMenuItem onClick={onOrderTracking}>
                       <Package className="mr-2 h-4 w-4" />
                       Order Tracking

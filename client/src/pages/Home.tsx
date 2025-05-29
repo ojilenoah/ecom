@@ -159,7 +159,7 @@ export default function Home() {
         total={0} // TODO: Calculate actual total from cart
       />
 
-      {currentUser && currentUser.role === 'customer' && (
+      {currentUser && currentUser.role === 'user' && (
         <OrderTrackingModal
           isOpen={isOrderTrackingOpen}
           onClose={() => setIsOrderTrackingOpen(false)}

@@ -391,6 +391,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Product rating route
+  app.get("/api/products/:id/rating", async (req, res) => {
+    try {
+      const productId = req.params.id;
+      const rating = await storage.getProductRating(productId);
+      res.json(rating);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch product rating" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

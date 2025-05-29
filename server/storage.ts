@@ -62,6 +62,7 @@ export interface IStorage {
   getAllProductsForAdmin(): Promise<any[]>;
   deleteUser(id: string): Promise<void>;
   rateOrder(userId: string, orderId: string, rating: number, comment?: string): Promise<void>;
+  getProductRating(productId: string): Promise<{ average_rating: number; review_count: number }>;
 }
 
 export class SupabaseStorage implements IStorage {
@@ -853,6 +854,36 @@ export class SupabaseStorage implements IStorage {
     } catch (error) {
       console.error('Rate order error:', error);
       throw new Error('Failed to submit rating');
+    }
+  }
+
+  async getProductRating(productId: string): Promise<{ average_rating: number; review_count: number }> {
+    try {
+      const supabase = getSupabaseClient();
+      
+      const { data: ratings, error } = await supabase
+        .from('ratings')
+        .select('rating')
+        .eq('product_id', productId);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (!ratings || ratings.length === 0) {
+        return { average_rating: 0, review_count: 0 };
+      }
+
+      const totalRating = ratings.reduce((sum, rating) => sum + rating.rating, 0);
+      const averageRating = totalRating / ratings.length;
+
+      return {
+        average_rating: parseFloat(averageRating.toFixed(1)),
+        review_count: ratings.length
+      };
+    } catch (error) {
+      console.error('Get product rating error:', error);
+      return { average_rating: 0, review_count: 0 };
     }
   }
 }
