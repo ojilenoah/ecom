@@ -1,8 +1,15 @@
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Store, X, Plus, Edit, Trash2, DollarSign, ShoppingCart, Package, Star } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
+import { apiRequest } from '@/lib/queryClient';
 
 interface VendorDashboardProps {
   isOpen: boolean;
@@ -11,6 +18,31 @@ interface VendorDashboardProps {
 
 export function VendorDashboard({ isOpen, onClose }: VendorDashboardProps) {
   const { currentUser } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [showAddProduct, setShowAddProduct] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [productForm, setProductForm] = useState({
+    name: '',
+    description: '',
+    price: '',
+    category: '',
+    stock: '',
+    image_url: ''
+  });
+
+  const categories = [
+    'Electronics',
+    'Fashion',
+    'Home & Garden',
+    'Sports & Outdoors',
+    'Books',
+    'Health & Beauty',
+    'Toys & Games',
+    'Automotive',
+    'Food & Beverages',
+    'Office Supplies'
+  ];
 
   const { data: vendorStats } = useQuery({
     queryKey: ['/api/vendor/stats'],
@@ -22,24 +54,150 @@ export function VendorDashboard({ isOpen, onClose }: VendorDashboardProps) {
     enabled: !!currentUser && currentUser.role === 'vendor',
   });
 
+  const createProductMutation = useMutation({
+    mutationFn: async (productData: any) => {
+      return apiRequest('POST', '/api/vendor/products', productData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/vendor/products'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/vendor/stats'] });
+      setShowAddProduct(false);
+      setProductForm({
+        name: '',
+        description: '',
+        price: '',
+        category: '',
+        stock: '',
+        image_url: ''
+      });
+      toast({
+        title: 'Product created',
+        description: 'Your product has been successfully created.',
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to create product. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  });
+
+  const updateProductMutation = useMutation({
+    mutationFn: async ({ id, ...data }: any) => {
+      return apiRequest('PATCH', `/api/vendor/products/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/vendor/products'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/vendor/stats'] });
+      setEditingProduct(null);
+      setProductForm({
+        name: '',
+        description: '',
+        price: '',
+        category: '',
+        stock: '',
+        image_url: ''
+      });
+      toast({
+        title: 'Product updated',
+        description: 'Your product has been successfully updated.',
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to update product. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  });
+
+  const deleteProductMutation = useMutation({
+    mutationFn: async (productId: string) => {
+      return apiRequest('DELETE', `/api/vendor/products/${productId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/vendor/products'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/vendor/stats'] });
+      toast({
+        title: 'Product deleted',
+        description: 'Your product has been successfully deleted.',
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete product. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  });
+
   const handleAddProduct = () => {
-    // TODO: Implement add product modal
-    console.log('Add product modal');
+    setShowAddProduct(true);
+    setEditingProduct(null);
+    setProductForm({
+      name: '',
+      description: '',
+      price: '',
+      category: '',
+      stock: '',
+      image_url: ''
+    });
   };
 
-  const handleEditProduct = (productId: string) => {
-    // TODO: Implement edit product modal
-    console.log('Edit product:', productId);
+  const handleEditProduct = (product: any) => {
+    setEditingProduct(product);
+    setShowAddProduct(true);
+    setProductForm({
+      name: product.name,
+      description: product.description,
+      price: product.price.toString(),
+      category: product.category,
+      stock: product.stock.toString(),
+      image_url: product.image_url || ''
+    });
   };
 
   const handleDeleteProduct = (productId: string) => {
-    // TODO: Implement delete product
-    console.log('Delete product:', productId);
+    if (confirm('Are you sure you want to delete this product?')) {
+      deleteProductMutation.mutate(productId);
+    }
+  };
+
+  const handleSubmitProduct = () => {
+    if (!productForm.name || !productForm.price || !productForm.category) {
+      toast({
+        title: 'Missing fields',
+        description: 'Please fill in all required fields.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const productData = {
+      name: productForm.name,
+      description: productForm.description,
+      price: parseFloat(productForm.price),
+      category: productForm.category,
+      stock: parseInt(productForm.stock) || 0,
+      image_url: productForm.image_url || null
+    };
+
+    if (editingProduct) {
+      updateProductMutation.mutate({ id: editingProduct.id, ...productData });
+    } else {
+      createProductMutation.mutate(productData);
+    }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto bg-white/90 dark:bg-black/90 backdrop-blur-xl border border-white/20 shadow-xl shadow-emerald-500/10 ring-1 ring-emerald-400/20">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto scrollbar-hidden bg-white/90 dark:bg-black/90 backdrop-blur-xl border border-white/20 shadow-xl shadow-emerald-500/10 ring-1 ring-emerald-400/20">
+        <DialogTitle className="sr-only">Vendor Dashboard</DialogTitle>
+        <DialogDescription className="sr-only">Manage your products and view vendor statistics</DialogDescription>
         <div className="relative">
           <Button
             variant="ghost"

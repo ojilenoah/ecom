@@ -1,0 +1,184 @@
+THE FOLLOWING ARE THE SQL SCRIPT USED TO CREATE THE DATABASE ON SUPABASE:
+
+```SQL
+-- Create users table (standalone, no auth.users dependency)
+CREATE TABLE public.users (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  email TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  role TEXT CHECK (role IN ('user', 'vendor')) DEFAULT 'user',
+  name TEXT,
+  avatar_url TEXT,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create vendor_profiles table
+CREATE TABLE public.vendor_profiles (
+  user_id UUID REFERENCES public.users(id) ON DELETE CASCADE PRIMARY KEY,
+  brand_name TEXT NOT NULL,
+  logo_url TEXT,
+  contact_email TEXT,
+  bio TEXT,
+  is_approved BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create products table
+CREATE TABLE public.products (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  vendor_id UUID REFERENCES public.users(id) ON DELETE CASCADE NOT NULL,
+  name TEXT NOT NULL,
+  description TEXT,
+  price DECIMAL(10,2) NOT NULL,
+  image_url TEXT,
+  category TEXT,
+  stock INTEGER DEFAULT 0,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create cart table
+CREATE TABLE public.cart (
+  user_id UUID REFERENCES public.users(id) ON DELETE CASCADE,
+  product_id UUID REFERENCES public.products(id) ON DELETE CASCADE,
+  quantity INTEGER DEFAULT 1,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  PRIMARY KEY (user_id, product_id)
+);
+
+-- Create orders table
+CREATE TABLE public.orders (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES public.users(id) ON DELETE CASCADE NOT NULL,
+  items JSONB NOT NULL,
+  total DECIMAL(10,2) NOT NULL,
+  status TEXT CHECK (status IN ('pending', 'paid', 'fulfilled', 'cancelled')) DEFAULT 'pending',
+  vendor_id UUID REFERENCES public.users(id),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create ratings table
+CREATE TABLE public.ratings (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES public.users(id) ON DELETE CASCADE NOT NULL,
+  product_id UUID REFERENCES public.products(id) ON DELETE CASCADE NOT NULL,
+  rating INTEGER CHECK (rating >= 1 AND rating <= 5) NOT NULL,
+  comment TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(user_id, product_id)
+);
+
+-- Create settings table for admin controls
+CREATE TABLE public.settings (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Insert default settings
+INSERT INTO public.settings (key, value) VALUES 
+('maintenance_mode', 'false'),
+('allow_new_vendors', 'true'),
+('platform_name', 'Minilal'),
+('email_verification_required', 'false');
+
+-- Create some sample data for testing
+INSERT INTO public.users (email, password_hash, role, name) VALUES 
+('john@example.com', '$2b$10$dummy_hash_for_testing', 'user', 'John Doe'),
+('vendor1@example.com', '$2b$10$dummy_hash_for_testing', 'vendor', 'Vendor One'),
+('vendor2@example.com', '$2b$10$dummy_hash_for_testing', 'vendor', 'Vendor Two');
+
+-- Insert sample vendor profiles
+INSERT INTO public.vendor_profiles (user_id, brand_name, contact_email, bio, is_approved) 
+SELECT 
+  id, 
+  CASE 
+    WHEN name = 'Vendor One' THEN 'TechGear Pro'
+    WHEN name = 'Vendor Two' THEN 'Style Junction'
+  END,
+  email,
+  CASE 
+    WHEN name = 'Vendor One' THEN 'Premium tech accessories and gadgets'
+    WHEN name = 'Vendor Two' THEN 'Fashion and lifestyle products'
+  END,
+  true
+FROM public.users WHERE role = 'vendor';
+
+-- Insert sample products
+INSERT INTO public.products (vendor_id, name, description, price, category, stock) 
+SELECT 
+  u.id,
+  CASE 
+    WHEN vp.brand_name = 'TechGear Pro' THEN 'Wireless Headphones'
+    WHEN vp.brand_name = 'Style Junction' THEN 'Designer Sunglasses'
+  END,
+  CASE 
+    WHEN vp.brand_name = 'TechGear Pro' THEN 'Premium wireless headphones with noise cancellation'
+    WHEN vp.brand_name = 'Style Junction' THEN 'Stylish designer sunglasses for all occasions'
+  END,
+  CASE 
+    WHEN vp.brand_name = 'TechGear Pro' THEN 199.99
+    WHEN vp.brand_name = 'Style Junction' THEN 89.99
+  END,
+  CASE 
+    WHEN vp.brand_name = 'TechGear Pro' THEN 'Electronics'
+    WHEN vp.brand_name = 'Style Junction' THEN 'Fashion'
+  END,
+  50
+FROM public.users u
+JOIN public.vendor_profiles vp ON u.id = vp.user_id;
+
+-- Enable RLS on all tables
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.vendor_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.cart ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.ratings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.settings ENABLE ROW LEVEL SECURITY;
+
+-- For testing purposes, create permissive policies (you can tighten these later)
+CREATE POLICY "Allow all operations for users" ON public.users FOR ALL USING (true);
+CREATE POLICY "Allow all operations for vendor_profiles" ON public.vendor_profiles FOR ALL USING (true);
+CREATE POLICY "Allow all operations for products" ON public.products FOR ALL USING (true);
+CREATE POLICY "Allow all operations for cart" ON public.cart FOR ALL USING (true);
+CREATE POLICY "Allow all operations for orders" ON public.orders FOR ALL USING (true);
+CREATE POLICY "Allow all operations for ratings" ON public.ratings FOR ALL USING (true);
+CREATE POLICY "Allow all operations for settings" ON public.settings FOR ALL USING (true);
+
+-- Create functions for updated_at timestamps
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Create triggers for updated_at
+CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON public.users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_vendor_profiles_updated_at BEFORE UPDATE ON public.vendor_profiles FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_products_updated_at BEFORE UPDATE ON public.products FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_orders_updated_at BEFORE UPDATE ON public.orders FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_settings_updated_at BEFORE UPDATE ON public.settings FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Create indexes for better performance
+CREATE INDEX idx_products_vendor_id ON public.products(vendor_id);
+CREATE INDEX idx_products_category ON public.products(category);
+CREATE INDEX idx_products_active ON public.products(is_active);
+CREATE INDEX idx_orders_user_id ON public.orders(user_id);
+CREATE INDEX idx_orders_status ON public.orders(status);
+CREATE INDEX idx_cart_user_id ON public.cart(user_id);
+CREATE INDEX idx_ratings_product_id ON public.ratings(product_id);
+```
+Storage Buckets CreateD
+In The Supabase Dashboard → Storage, I created these buckets with public access:
+
+product-images
+user-avatars
+vendor-logos

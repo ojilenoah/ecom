@@ -236,6 +236,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/vendor/products", async (req, res) => {
+    try {
+      const userId = req.headers['user-id'] as string;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const productData = { ...req.body, vendor_id: userId };
+      const product = await storage.createProduct(productData);
+      res.json(product);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create product" });
+    }
+  });
+
+  app.patch("/api/vendor/products/:id", async (req, res) => {
+    try {
+      const userId = req.headers['user-id'] as string;
+      const productId = req.params.id;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      // Verify the product belongs to this vendor
+      const existingProduct = await storage.getProductById(productId);
+      if (!existingProduct || existingProduct.vendor_id !== userId) {
+        return res.status(403).json({ message: "Not authorized to update this product" });
+      }
+
+      const product = await storage.updateProduct(productId, req.body);
+      res.json(product);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update product" });
+    }
+  });
+
+  app.delete("/api/vendor/products/:id", async (req, res) => {
+    try {
+      const userId = req.headers['user-id'] as string;
+      const productId = req.params.id;
+      
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      // Verify the product belongs to this vendor
+      const existingProduct = await storage.getProductById(productId);
+      if (!existingProduct || existingProduct.vendor_id !== userId) {
+        return res.status(403).json({ message: "Not authorized to delete this product" });
+      }
+
+      await storage.deleteProduct(productId);
+      res.json({ message: "Product deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete product" });
+    }
+  });
+
   // Admin routes
   app.get("/api/admin/stats", async (req, res) => {
     try {
