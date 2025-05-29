@@ -88,6 +88,7 @@ export class SupabaseStorage implements IStorage {
 
   async createUser(userData: InsertUser): Promise<User> {
     try {
+      const supabase = getSupabaseClient();
       const hashedPassword = await bcrypt.hash(userData.password_hash, 10);
       
       const { data: user, error } = await supabase
@@ -125,6 +126,7 @@ export class SupabaseStorage implements IStorage {
 
   async getUserById(id: string): Promise<User | null> {
     try {
+      const supabase = getSupabaseClient();
       const { data: user, error } = await supabase
         .from('users')
         .select('*')
@@ -144,6 +146,7 @@ export class SupabaseStorage implements IStorage {
 
   async updateUser(id: string, updates: Partial<User>): Promise<User> {
     try {
+      const supabase = getSupabaseClient();
       const { data: user, error } = await supabase
         .from('users')
         .update(updates)
@@ -164,6 +167,7 @@ export class SupabaseStorage implements IStorage {
 
   async getProducts(category?: string, search?: string): Promise<Product[]> {
     try {
+      const supabase = getSupabaseClient();
       let query = supabase
         .from('products')
         .select('*')
@@ -194,6 +198,7 @@ export class SupabaseStorage implements IStorage {
 
   async getCategories(): Promise<string[]> {
     try {
+      const supabase = getSupabaseClient();
       const { data: products, error } = await supabase
         .from('products')
         .select('category')
@@ -206,7 +211,7 @@ export class SupabaseStorage implements IStorage {
       }
 
       const categorySet: Set<string> = new Set();
-      products.forEach(p => {
+      products.forEach((p: any) => {
         if (p.category) {
           categorySet.add(p.category);
         }
@@ -221,6 +226,7 @@ export class SupabaseStorage implements IStorage {
 
   async getVendorProducts(vendorId: string): Promise<Product[]> {
     try {
+      const supabase = getSupabaseClient();
       const { data: products, error } = await supabase
         .from('products')
         .select('*')
@@ -241,6 +247,7 @@ export class SupabaseStorage implements IStorage {
 
   async createProduct(product: InsertProduct): Promise<Product> {
     try {
+      const supabase = getSupabaseClient();
       const { data: newProduct, error } = await supabase
         .from('products')
         .insert(product)
@@ -260,6 +267,7 @@ export class SupabaseStorage implements IStorage {
 
   async updateProduct(id: string, updates: Partial<Product>): Promise<Product> {
     try {
+      const supabase = getSupabaseClient();
       const { data: product, error } = await supabase
         .from('products')
         .update(updates)
@@ -280,6 +288,7 @@ export class SupabaseStorage implements IStorage {
 
   async deleteProduct(id: string): Promise<void> {
     try {
+      const supabase = getSupabaseClient();
       const { error } = await supabase
         .from('products')
         .delete()
@@ -296,6 +305,7 @@ export class SupabaseStorage implements IStorage {
 
   async getCartItems(userId: string): Promise<any[]> {
     try {
+      const supabase = getSupabaseClient();
       const { data: cartItems, error } = await supabase
         .from('cart')
         .select(`
@@ -316,7 +326,7 @@ export class SupabaseStorage implements IStorage {
         return [];
       }
 
-      return cartItems?.map(item => ({
+      return cartItems?.map((item: any) => ({
         user_id: item.user_id,
         product_id: item.product_id,
         quantity: item.quantity,
@@ -330,6 +340,7 @@ export class SupabaseStorage implements IStorage {
 
   async getCartCount(userId: string): Promise<number> {
     try {
+      const supabase = getSupabaseClient();
       const { data: cartItems, error } = await supabase
         .from('cart')
         .select('quantity')
@@ -340,7 +351,7 @@ export class SupabaseStorage implements IStorage {
         return 0;
       }
 
-      return cartItems?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0;
+      return cartItems?.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0) || 0;
     } catch (error) {
       console.error('Get cart count error:', error);
       return 0;
@@ -349,6 +360,7 @@ export class SupabaseStorage implements IStorage {
 
   async addToCart(cartItem: InsertCartItem): Promise<void> {
     try {
+      const supabase = getSupabaseClient();
       // Check if item already exists in cart
       const { data: existing, error: selectError } = await supabase
         .from('cart')
@@ -392,6 +404,7 @@ export class SupabaseStorage implements IStorage {
 
   async updateCartItem(userId: string, productId: string, quantity: number): Promise<void> {
     try {
+      const supabase = getSupabaseClient();
       const { error } = await supabase
         .from('cart')
         .update({ quantity })
@@ -409,6 +422,7 @@ export class SupabaseStorage implements IStorage {
 
   async removeFromCart(userId: string, productId: string): Promise<void> {
     try {
+      const supabase = getSupabaseClient();
       const { error } = await supabase
         .from('cart')
         .delete()
@@ -426,6 +440,7 @@ export class SupabaseStorage implements IStorage {
 
   async clearCart(userId: string): Promise<void> {
     try {
+      const supabase = getSupabaseClient();
       const { error } = await supabase
         .from('cart')
         .delete()
@@ -442,6 +457,7 @@ export class SupabaseStorage implements IStorage {
 
   async createOrder(userId: string, orderData: any): Promise<Order> {
     try {
+      const supabase = getSupabaseClient();
       // Get cart items
       const cartItems = await this.getCartItems(userId);
       
@@ -492,6 +508,7 @@ export class SupabaseStorage implements IStorage {
 
   async getUserOrders(userId: string): Promise<Order[]> {
     try {
+      const supabase = getSupabaseClient();
       const { data: orders, error } = await supabase
         .from('orders')
         .select('*')
@@ -512,6 +529,7 @@ export class SupabaseStorage implements IStorage {
 
   async updateOrderStatus(orderId: string, status: string): Promise<void> {
     try {
+      const supabase = getSupabaseClient();
       const { error } = await supabase
         .from('orders')
         .update({ status })
@@ -528,6 +546,7 @@ export class SupabaseStorage implements IStorage {
 
   async getVendorStats(vendorId: string): Promise<any> {
     try {
+      const supabase = getSupabaseClient();
       // Get vendor's products
       const { data: products, error: productsError } = await supabase
         .from('products')
@@ -538,7 +557,7 @@ export class SupabaseStorage implements IStorage {
         throw productsError;
       }
 
-      const productIds = products?.map(p => p.id) || [];
+      const productIds = products?.map((p: any) => p.id) || [];
 
       // Get orders containing vendor's products
       const { data: orders, error: ordersError } = await supabase
@@ -554,7 +573,7 @@ export class SupabaseStorage implements IStorage {
       let totalRevenue = 0;
       let totalOrders = 0;
 
-      orders?.forEach(order => {
+      orders?.forEach((order: any) => {
         if (order.items && Array.isArray(order.items)) {
           const vendorItems = order.items.filter((item: any) => 
             productIds.includes(item.product?.id || item.product_id)
@@ -588,6 +607,7 @@ export class SupabaseStorage implements IStorage {
 
   async getAdminStats(): Promise<any> {
     try {
+      const supabase = getSupabaseClient();
       // Get user count
       const { count: userCount, error: userError } = await supabase
         .from('users')
@@ -613,7 +633,7 @@ export class SupabaseStorage implements IStorage {
         .select('total')
         .eq('status', 'fulfilled');
 
-      const totalRevenue = orders?.reduce((sum, order) => 
+      const totalRevenue = orders?.reduce((sum: number, order: any) => 
         sum + parseFloat(order.total || '0'), 0
       ) || 0;
 
@@ -636,6 +656,7 @@ export class SupabaseStorage implements IStorage {
 
   async getRecentActivity(): Promise<any[]> {
     try {
+      const supabase = getSupabaseClient();
       // Get recent orders
       const { data: recentOrders, error: ordersError } = await supabase
         .from('orders')
@@ -653,7 +674,7 @@ export class SupabaseStorage implements IStorage {
       const activity = [];
 
       if (recentOrders) {
-        activity.push(...recentOrders.map(order => ({
+        activity.push(...recentOrders.map((order: any) => ({
           type: 'order',
           message: `Order placed: $${order.total}`,
           timestamp: new Date(order.created_at).toLocaleString()
@@ -661,7 +682,7 @@ export class SupabaseStorage implements IStorage {
       }
 
       if (recentUsers) {
-        activity.push(...recentUsers.map(user => ({
+        activity.push(...recentUsers.map((user: any) => ({
           type: 'user',
           message: `New user registration: ${user.name}`,
           timestamp: new Date(user.created_at).toLocaleString()
