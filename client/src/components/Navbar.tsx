@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingBag, Search, ShoppingCart, Moon, Sun, User, Store, Settings, LogOut } from 'lucide-react';
+import { ShoppingBag, Search, ShoppingCart, Moon, Sun, User, Store, Settings, LogOut, Package } from 'lucide-react';
 import { useState } from 'react';
 import { useTheme } from '@/components/ThemeProvider';
 import { useAuth } from '@/hooks/useAuth';

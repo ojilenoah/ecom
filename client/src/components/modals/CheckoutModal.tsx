@@ -39,22 +39,24 @@ export function CheckoutModal({ isOpen, onClose, total }: CheckoutModalProps) {
         billingAddress: paymentData.billingAddress
       });
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/cart'] });
       queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/orders/user'] });
       toast({
         title: 'Order placed successfully!',
-        description: 'Your order has been placed and will be fulfilled shortly.',
+        description: 'Your order has been placed and will be fulfilled in 30 seconds.',
       });
       onClose();
       
-      // Simulate order fulfillment after 1 minute
+      // Simulate order fulfillment after 30 seconds
       setTimeout(() => {
         toast({
           title: 'Order fulfilled!',
-          description: 'Your order has been processed and is on its way.',
+          description: 'Your order has been processed and is ready for rating.',
         });
-      }, 60000);
+        queryClient.invalidateQueries({ queryKey: ['/api/orders/user'] });
+      }, 30000);
     },
     onError: () => {
       toast({
@@ -78,149 +80,138 @@ export function CheckoutModal({ isOpen, onClose, total }: CheckoutModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md bg-white/90 dark:bg-black/90 backdrop-blur-xl border border-white/20 shadow-xl shadow-emerald-500/10 ring-1 ring-emerald-400/20">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto bg-white/90 dark:bg-black/90 backdrop-blur-xl border border-white/20 shadow-xl shadow-emerald-500/10 ring-1 ring-emerald-400/20">
         <div className="relative">
           <Button
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-black/20 hover:bg-black/30 text-white"
+            className="absolute top-2 right-2 z-10 w-8 h-8 rounded-full bg-black/20 hover:bg-black/30 text-white"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </Button>
           
-          <div className="p-8">
-            <div className="text-center mb-8">
-              <div className="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <CreditCard className="h-8 w-8 text-white" />
+          <div className="p-4 sm:p-6">
+            <div className="text-center mb-6">
+              <div className="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <CreditCard className="h-6 w-6 text-white" />
               </div>
-              <h2 className="text-2xl font-bold">Secure Checkout</h2>
-              <p className="text-gray-600 dark:text-gray-400 mt-2">
-                Complete your order - Total: <span className="font-bold text-emerald-500">${total.toFixed(2)}</span>
+              <h2 className="text-xl font-bold">Secure Checkout</h2>
+              <p className="text-gray-600 dark:text-gray-400 mt-1 text-sm">
+                Total: <span className="font-bold text-emerald-500">${total.toFixed(2)}</span>
               </p>
             </div>
             
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-3">
               {/* Payment Information */}
-              <div className="space-y-4">
-                <h3 className="font-semibold flex items-center">
+              <div className="space-y-3">
+                <h3 className="font-semibold flex items-center text-sm">
                   <Lock className="mr-2 h-4 w-4" />
                   Payment Information (Demo)
                 </h3>
                 
                 <div>
-                  <Label htmlFor="cardNumber">Card Number</Label>
+                  <Label htmlFor="cardNumber" className="text-sm">Card Number</Label>
                   <Input
                     id="cardNumber"
                     placeholder="4242 4242 4242 4242"
                     value={paymentData.cardNumber}
                     onChange={(e) => setPaymentData(prev => ({ ...prev, cardNumber: e.target.value }))}
-                    className="mt-2 rounded-xl"
+                    className="mt-1 rounded-lg h-9"
                     required
                   />
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-2">
                   <div>
-                    <Label htmlFor="expiryDate">Expiry Date</Label>
+                    <Label htmlFor="expiryDate" className="text-sm">Expiry</Label>
                     <Input
                       id="expiryDate"
                       placeholder="MM/YY"
                       value={paymentData.expiryDate}
                       onChange={(e) => setPaymentData(prev => ({ ...prev, expiryDate: e.target.value }))}
-                      className="mt-2 rounded-xl"
+                      className="mt-1 rounded-lg h-9"
                       required
                     />
                   </div>
                   <div>
-                    <Label htmlFor="cvv">CVV</Label>
+                    <Label htmlFor="cvv" className="text-sm">CVV</Label>
                     <Input
                       id="cvv"
                       placeholder="123"
                       value={paymentData.cvv}
                       onChange={(e) => setPaymentData(prev => ({ ...prev, cvv: e.target.value }))}
-                      className="mt-2 rounded-xl"
+                      className="mt-1 rounded-lg h-9"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="nameOnCard" className="text-sm">Name</Label>
+                    <Input
+                      id="nameOnCard"
+                      placeholder="John Doe"
+                      value={paymentData.nameOnCard}
+                      onChange={(e) => setPaymentData(prev => ({ ...prev, nameOnCard: e.target.value }))}
+                      className="mt-1 rounded-lg h-9"
                       required
                     />
                   </div>
                 </div>
-                
-                <div>
-                  <Label htmlFor="nameOnCard">Name on Card</Label>
-                  <Input
-                    id="nameOnCard"
-                    placeholder="John Doe"
-                    value={paymentData.nameOnCard}
-                    onChange={(e) => setPaymentData(prev => ({ ...prev, nameOnCard: e.target.value }))}
-                    className="mt-2 rounded-xl"
-                    required
-                  />
-                </div>
               </div>
 
-              {/* Billing Address */}
-              <div className="space-y-4">
-                <h3 className="font-semibold">Billing Address</h3>
+              {/* Simplified Billing Address */}
+              <div className="space-y-2">
+                <h3 className="font-semibold text-sm">Billing Address</h3>
                 
-                <div>
-                  <Label htmlFor="street">Street Address</Label>
-                  <Input
-                    id="street"
-                    placeholder="123 Main St"
-                    value={paymentData.billingAddress.street}
-                    onChange={(e) => setPaymentData(prev => ({ 
-                      ...prev, 
-                      billingAddress: { ...prev.billingAddress, street: e.target.value }
-                    }))}
-                    className="mt-2 rounded-xl"
-                    required
-                  />
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <Label htmlFor="city">City</Label>
                     <Input
-                      id="city"
-                      placeholder="New York"
+                      placeholder="Street Address"
+                      value={paymentData.billingAddress.street}
+                      onChange={(e) => setPaymentData(prev => ({ 
+                        ...prev, 
+                        billingAddress: { ...prev.billingAddress, street: e.target.value }
+                      }))}
+                      className="rounded-lg h-9"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Input
+                      placeholder="City"
                       value={paymentData.billingAddress.city}
                       onChange={(e) => setPaymentData(prev => ({ 
                         ...prev, 
                         billingAddress: { ...prev.billingAddress, city: e.target.value }
                       }))}
-                      className="mt-2 rounded-xl"
+                      className="rounded-lg h-9"
                       required
                     />
                   </div>
                   <div>
-                    <Label htmlFor="state">State</Label>
                     <Input
-                      id="state"
-                      placeholder="NY"
+                      placeholder="State"
                       value={paymentData.billingAddress.state}
                       onChange={(e) => setPaymentData(prev => ({ 
                         ...prev, 
                         billingAddress: { ...prev.billingAddress, state: e.target.value }
                       }))}
-                      className="mt-2 rounded-xl"
+                      className="rounded-lg h-9"
                       required
                     />
                   </div>
-                </div>
-                
-                <div>
-                  <Label htmlFor="zipCode">ZIP Code</Label>
-                  <Input
-                    id="zipCode"
-                    placeholder="10001"
-                    value={paymentData.billingAddress.zipCode}
-                    onChange={(e) => setPaymentData(prev => ({ 
-                      ...prev, 
-                      billingAddress: { ...prev.billingAddress, zipCode: e.target.value }
-                    }))}
-                    className="mt-2 rounded-xl"
-                    required
-                  />
+                  <div>
+                    <Input
+                      placeholder="ZIP Code"
+                      value={paymentData.billingAddress.zipCode}
+                      onChange={(e) => setPaymentData(prev => ({ 
+                        ...prev, 
+                        billingAddress: { ...prev.billingAddress, zipCode: e.target.value }
+                      }))}
+                      className="rounded-lg h-9"
+                      required
+                    />
+                  </div>
                 </div>
               </div>
               
