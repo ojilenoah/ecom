@@ -29,7 +29,7 @@ export function CartModal({ isOpen, onClose, onCheckout }: CartModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: cartItems = [], isLoading } = useQuery({
+  const { data: cartItems = [], isLoading } = useQuery<CartItemWithProduct[]>({
     queryKey: ['/api/cart'],
     enabled: !!currentUser && currentUser.role !== 'admin',
   });
