@@ -1,8 +1,13 @@
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Settings, X, BarChart3, Users, Store, Package, Sliders, UserPlus, ShoppingCart } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Settings, X, BarChart3, Users, Store, Package, Sliders, UserPlus, ShoppingCart, Check, Ban, Edit, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 
 interface AdminPanelProps {
   isOpen: boolean;
@@ -148,14 +153,6 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-7xl max-h-[90vh] overflow-hidden bg-white/90 dark:bg-black/90 backdrop-blur-xl border border-white/20 shadow-xl shadow-emerald-500/10 ring-1 ring-emerald-400/20">
         <div className="relative">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-black/20 hover:bg-black/30 text-white"
-          >
-            <X className="h-5 w-5" />
-          </Button>
           
           <div className="flex h-[80vh]">
             {/* Sidebar */}
