@@ -183,7 +183,6 @@ export function CartModal({ isOpen, onClose, onCheckout }: CartModalProps) {
               </Button>
             </div>
           </div>
-        </div>
       </DialogContent>
     </Dialog>
   );
