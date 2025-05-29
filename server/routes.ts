@@ -376,6 +376,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/orders/rate", async (req, res) => {
+    try {
+      const userId = req.headers['user-id'] as string;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const { orderId, rating, comment } = req.body;
+      await storage.rateOrder(userId, orderId, rating, comment);
+      res.json({ message: "Rating submitted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to submit rating" });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

@@ -15,6 +15,7 @@ interface NavbarProps {
   onVendorDashboard: () => void;
   onAdminPanel: () => void;
   onProfileClick: () => void;
+  onOrderTracking: () => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
 }

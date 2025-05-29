@@ -57,6 +57,11 @@ export interface IStorage {
   // Admin
   getAdminStats(): Promise<any>;
   getRecentActivity(): Promise<any[]>;
+  getAllUsers(): Promise<any[]>;
+  getAllVendors(): Promise<any[]>;
+  getAllProductsForAdmin(): Promise<any[]>;
+  deleteUser(id: string): Promise<void>;
+  rateOrder(userId: string, orderId: string, rating: number, comment?: string): Promise<void>;
 }
 
 export class SupabaseStorage implements IStorage {
@@ -719,6 +724,135 @@ export class SupabaseStorage implements IStorage {
     } catch (error) {
       console.error('Get recent activity error:', error);
       return [];
+    }
+  }
+
+  async getAllUsers(): Promise<any[]> {
+    try {
+      const supabase = getSupabaseClient();
+      const { data: users, error } = await supabase
+        .from('users')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      return users?.map(user => {
+        const { password_hash, ...userWithoutPassword } = user;
+        return userWithoutPassword;
+      }) || [];
+    } catch (error) {
+      console.error('Get all users error:', error);
+      return [];
+    }
+  }
+
+  async getAllVendors(): Promise<any[]> {
+    try {
+      const supabase = getSupabaseClient();
+      const { data: vendors, error } = await supabase
+        .from('users')
+        .select(`
+          *,
+          vendor_profiles(brand_name, contact_email, bio, is_approved)
+        `)
+        .eq('role', 'vendor')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      return vendors?.map(vendor => {
+        const { password_hash, ...vendorWithoutPassword } = vendor;
+        return vendorWithoutPassword;
+      }) || [];
+    } catch (error) {
+      console.error('Get all vendors error:', error);
+      return [];
+    }
+  }
+
+  async getAllProductsForAdmin(): Promise<any[]> {
+    try {
+      const supabase = getSupabaseClient();
+      const { data: products, error } = await supabase
+        .from('products')
+        .select(`
+          *,
+          users(name, email)
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      return products || [];
+    } catch (error) {
+      console.error('Get all products for admin error:', error);
+      return [];
+    }
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    try {
+      const supabase = getSupabaseClient();
+      const { error } = await supabase
+        .from('users')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+    } catch (error) {
+      console.error('Delete user error:', error);
+      throw new Error('Failed to delete user');
+    }
+  }
+
+  async rateOrder(userId: string, orderId: string, rating: number, comment?: string): Promise<void> {
+    try {
+      const supabase = getSupabaseClient();
+      
+      // Get the order to find the product IDs
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .select('items')
+        .eq('id', orderId)
+        .eq('user_id', userId)
+        .single();
+
+      if (orderError || !order) {
+        throw new Error('Order not found');
+      }
+
+      // Insert ratings for each product in the order
+      if (order.items && Array.isArray(order.items)) {
+        const ratings = order.items.map((item: any) => ({
+          user_id: userId,
+          product_id: item.product_id || item.product?.id,
+          rating,
+          comment: comment || null
+        }));
+
+        const { error: ratingError } = await supabase
+          .from('ratings')
+          .upsert(ratings, { 
+            onConflict: 'user_id,product_id',
+            ignoreDuplicates: false 
+          });
+
+        if (ratingError) {
+          throw new Error(ratingError.message);
+        }
+      }
+    } catch (error) {
+      console.error('Rate order error:', error);
+      throw new Error('Failed to submit rating');
     }
   }
 }
