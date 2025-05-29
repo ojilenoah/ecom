@@ -64,8 +64,8 @@ export function Navbar({
           </div>
 
           {/* Search Bar */}
-          <div className="flex-1 max-w-md mx-8">
-            <div className="relative">
+          <div className="hidden sm:flex flex-1 max-w-md mx-4 lg:mx-8">
+            <div className="relative w-full">
               <Input
                 type="text"
                 placeholder="Search products..."

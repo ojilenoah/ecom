@@ -148,6 +148,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const order = await storage.createOrder(userId, req.body);
+      
+      // Automatically fulfill order after 30 seconds
+      setTimeout(async () => {
+        try {
+          await storage.updateOrderStatus(order.id, 'fulfilled');
+        } catch (error) {
+          console.error('Failed to auto-fulfill order:', error);
+        }
+      }, 30000);
+
       res.json(order);
     } catch (error) {
       res.status(500).json({ message: "Checkout failed" });
