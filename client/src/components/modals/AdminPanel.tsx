@@ -1,16 +1,13 @@
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Users, Store, Package, DollarSign, Activity, Settings, UserCheck, UserX, Edit, Trash2, Search } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Settings, X, BarChart3, Users, Store, Package, Sliders, UserPlus, ShoppingCart, Check, Ban, Edit, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import { useState } from 'react';
 
 interface AdminPanelProps {
   isOpen: boolean;
@@ -21,440 +18,179 @@ type AdminSection = 'dashboard' | 'users' | 'vendors' | 'products' | 'settings';
 
 export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
   const [activeSection, setActiveSection] = useState<AdminSection>('dashboard');
-  const [searchTerm, setSearchTerm] = useState('');
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
 
-  const { data: adminStats } = useQuery<{
-    users: number;
-    vendors: number;
-    products: number;
-    revenue: string;
-  }>({
+  const { data: platformStats } = useQuery({
     queryKey: ['/api/admin/stats'],
-    enabled: isOpen,
   });
 
-  const { data: recentActivity = [] } = useQuery<any[]>({
+  const { data: recentActivity = [] } = useQuery({
     queryKey: ['/api/admin/activity'],
-    enabled: isOpen,
   });
 
-  const { data: allUsers = [] } = useQuery<any[]>({
-    queryKey: ['/api/admin/users'],
-    enabled: activeSection === 'users' && isOpen,
-  });
+  const navItems = [
+    { id: 'dashboard' as AdminSection, label: 'Dashboard', icon: BarChart3 },
+    { id: 'users' as AdminSection, label: 'Users', icon: Users },
+    { id: 'vendors' as AdminSection, label: 'Vendors', icon: Store },
+    { id: 'products' as AdminSection, label: 'Products', icon: Package },
+    { id: 'settings' as AdminSection, label: 'Settings', icon: Sliders },
+  ];
 
-  const { data: allVendors = [] } = useQuery<any[]>({
-    queryKey: ['/api/admin/vendors'],
-    enabled: activeSection === 'vendors' && isOpen,
-  });
-
-  const { data: allProducts = [] } = useQuery<any[]>({
-    queryKey: ['/api/admin/products'],
-    enabled: activeSection === 'products' && isOpen,
-  });
-
-  const updateUserMutation = useMutation({
-    mutationFn: async ({ id, ...data }: any) => {
-      return apiRequest('PATCH', `/api/admin/users/${id}`, data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/vendors'] });
-      toast({
-        title: 'User updated',
-        description: 'User has been successfully updated.',
-      });
-    },
-  });
-
-  const deleteUserMutation = useMutation({
-    mutationFn: async (userId: string) => {
-      return apiRequest('DELETE', `/api/admin/users/${userId}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/vendors'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
-      toast({
-        title: 'User deleted',
-        description: 'User has been successfully deleted.',
-      });
-    },
-  });
-
-  const StatCard = ({ title, value, icon: Icon, description }: any) => (
-    <Card className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border border-white/20">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" />
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        <p className="text-xs text-muted-foreground">{description}</p>
-      </CardContent>
-    </Card>
+  const renderDashboard = () => (
+    <div>
+      <h2 className="text-2xl font-bold mb-6">Platform Overview</h2>
+      
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-blue-100">Total Users</p>
+              <p className="text-2xl font-bold">{platformStats?.users || '0'}</p>
+            </div>
+            <Users className="h-8 w-8 text-blue-200" />
+          </div>
+        </div>
+        
+        <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-2xl p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-emerald-100">Active Vendors</p>
+              <p className="text-2xl font-bold">{platformStats?.vendors || '0'}</p>
+            </div>
+            <Store className="h-8 w-8 text-emerald-200" />
+          </div>
+        </div>
+        
+        <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-purple-100">Total Products</p>
+              <p className="text-2xl font-bold">{platformStats?.products || '0'}</p>
+            </div>
+            <Package className="h-8 w-8 text-purple-200" />
+          </div>
+        </div>
+        
+        <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl p-6 text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-orange-100">Total Revenue</p>
+              <p className="text-2xl font-bold">${platformStats?.revenue || '0'}</p>
+            </div>
+            <div className="text-2xl text-orange-200">$</div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Recent Activity */}
+      <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6">
+        <h3 className="text-lg font-bold mb-4">Recent Activity</h3>
+        <div className="space-y-3">
+          {recentActivity.length === 0 ? (
+            <p className="text-gray-500 text-center py-4">No recent activity</p>
+          ) : (
+            recentActivity.map((activity: any, index: number) => (
+              <div key={index} className="flex items-center space-x-3 p-3 bg-white dark:bg-gray-700 rounded-xl">
+                <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-800 rounded-full flex items-center justify-center">
+                  {activity.type === 'user' ? (
+                    <UserPlus className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                  ) : activity.type === 'order' ? (
+                    <ShoppingCart className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  ) : (
+                    <Package className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm">{activity.message}</p>
+                  <p className="text-xs text-gray-500">{activity.timestamp}</p>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
   );
 
-  const filteredUsers = allUsers.filter((user: any) =>
-    user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const filteredVendors = allVendors.filter((vendor: any) =>
-    vendor.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    vendor.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const filteredProducts = allProducts.filter((product: any) =>
-    product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.category?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const renderSection = () => {
+    switch (activeSection) {
+      case 'dashboard':
+        return renderDashboard();
+      case 'users':
+        return (
+          <div>
+            <h2 className="text-2xl font-bold mb-6">User Management</h2>
+            <p className="text-gray-500">User management interface would be implemented here.</p>
+          </div>
+        );
+      case 'vendors':
+        return (
+          <div>
+            <h2 className="text-2xl font-bold mb-6">Vendor Management</h2>
+            <p className="text-gray-500">Vendor approval and management interface would be implemented here.</p>
+          </div>
+        );
+      case 'products':
+        return (
+          <div>
+            <h2 className="text-2xl font-bold mb-6">Product Management</h2>
+            <p className="text-gray-500">Global product management interface would be implemented here.</p>
+          </div>
+        );
+      case 'settings':
+        return (
+          <div>
+            <h2 className="text-2xl font-bold mb-6">Platform Settings</h2>
+            <p className="text-gray-500">Platform configuration and settings would be implemented here.</p>
+          </div>
+        );
+      default:
+        return renderDashboard();
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-7xl max-h-[95vh] overflow-hidden bg-white/90 dark:bg-black/90 backdrop-blur-xl border border-white/20 shadow-xl shadow-emerald-500/10 ring-1 ring-emerald-400/20">
-        <DialogTitle className="sr-only">Admin Panel</DialogTitle>
-        <DialogDescription className="sr-only">Administrative dashboard for managing users, vendors, and products</DialogDescription>
-        
-        <div className="p-8 h-full flex flex-col">
-          <div className="flex items-center space-x-4 mb-8">
-            <div className="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center">
-              <Settings className="h-8 w-8 text-white" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold">Admin Panel</h2>
-              <p className="text-gray-600 dark:text-gray-400">Manage your e-commerce platform</p>
-            </div>
-          </div>
-
-          <div className="flex flex-1 gap-6">
+      <DialogContent className="max-w-7xl max-h-[90vh] overflow-hidden bg-white/90 dark:bg-black/90 backdrop-blur-xl border border-white/20 shadow-xl shadow-emerald-500/10 ring-1 ring-emerald-400/20">
+        <div className="relative">
+          
+          <div className="flex h-[80vh]">
             {/* Sidebar */}
-            <div className="w-64 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border border-white/20 rounded-2xl p-6">
+            <div className="w-64 bg-gray-50 dark:bg-gray-800 rounded-l-2xl p-6">
+              <div className="flex items-center space-x-3 mb-8">
+                <div className="w-12 h-12 bg-emerald-500 rounded-lg flex items-center justify-center">
+                  <Settings className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-bold">Admin Panel</h3>
+                  <p className="text-sm text-gray-500">System Control</p>
+                </div>
+              </div>
+              
               <nav className="space-y-2">
-                <button
-                  onClick={() => setActiveSection('dashboard')}
-                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-colors ${
-                    activeSection === 'dashboard'
-                      ? 'bg-emerald-500 text-white'
-                      : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  <Activity className="h-5 w-5" />
-                  <span>Dashboard</span>
-                </button>
-                <button
-                  onClick={() => setActiveSection('users')}
-                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-colors ${
-                    activeSection === 'users'
-                      ? 'bg-emerald-500 text-white'
-                      : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  <Users className="h-5 w-5" />
-                  <span>Users</span>
-                </button>
-                <button
-                  onClick={() => setActiveSection('vendors')}
-                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-colors ${
-                    activeSection === 'vendors'
-                      ? 'bg-emerald-500 text-white'
-                      : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  <Store className="h-5 w-5" />
-                  <span>Vendors</span>
-                </button>
-                <button
-                  onClick={() => setActiveSection('products')}
-                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-colors ${
-                    activeSection === 'products'
-                      ? 'bg-emerald-500 text-white'
-                      : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  <Package className="h-5 w-5" />
-                  <span>Products</span>
-                </button>
-                <button
-                  onClick={() => setActiveSection('settings')}
-                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-colors ${
-                    activeSection === 'settings'
-                      ? 'bg-emerald-500 text-white'
-                      : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  <Settings className="h-5 w-5" />
-                  <span>Settings</span>
-                </button>
+                {navItems.map((item) => (
+                  <Button
+                    key={item.id}
+                    variant={activeSection === item.id ? "default" : "ghost"}
+                    onClick={() => setActiveSection(item.id)}
+                    className={`w-full justify-start rounded-xl ${
+                      activeSection === item.id 
+                        ? 'bg-emerald-500 text-white hover:bg-emerald-600' 
+                        : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <item.icon className="mr-3 h-4 w-4" />
+                    {item.label}
+                  </Button>
+                ))}
               </nav>
             </div>
-
+            
             {/* Main Content */}
-            <div className="flex-1 overflow-y-auto scrollbar-hidden">
-              {activeSection === 'dashboard' && (
-                <div className="space-y-6">
-                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                  <StatCard
-                    title="Total Users"
-                    value={adminStats?.users || 0}
-                    icon={Users}
-                    description="Active platform users"
-                  />
-                  <StatCard
-                    title="Vendors"
-                    value={adminStats?.vendors || 0}
-                    icon={Store}
-                    description="Registered vendors"
-                  />
-                  <StatCard
-                    title="Products"
-                    value={adminStats?.products || 0}
-                    icon={Package}
-                    description="Total products listed"
-                  />
-                  <StatCard
-                    title="Revenue"
-                    value={`$${adminStats?.revenue || '0.00'}`}
-                    icon={DollarSign}
-                    description="Total platform revenue"
-                  />
-                </div>
-
-                <Card className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border border-white/20">
-                  <CardHeader>
-                    <CardTitle className="flex items-center space-x-2">
-                      <Activity className="h-5 w-5" />
-                      <span>Recent Activity</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4 max-h-60 overflow-y-auto scrollbar-hidden">
-                      {recentActivity.length === 0 ? (
-                        <p className="text-gray-500 text-center py-4">No recent activity</p>
-                      ) : (
-                        recentActivity.map((activity: any, index: number) => (
-                          <div key={index} className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                            <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                            <div className="flex-1">
-                              <p className="text-sm">{activity.message}</p>
-                              <p className="text-xs text-gray-500">{activity.timestamp}</p>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="users" className="space-y-6 mt-0">
-                <div className="flex items-center space-x-4">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input
-                      placeholder="Search users..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                </div>
-
-                <Card className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border border-white/20">
-                  <CardHeader>
-                    <CardTitle>User Management</CardTitle>
-                    <CardDescription>Manage platform users and their permissions</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4 max-h-96 overflow-y-auto scrollbar-hidden">
-                      {filteredUsers.map((user: any) => (
-                        <div key={user.id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                          <div className="flex items-center space-x-4">
-                            <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-white font-medium">
-                              {user.name?.charAt(0) || 'U'}
-                            </div>
-                            <div>
-                              <p className="font-medium">{user.name}</p>
-                              <p className="text-sm text-gray-500">{user.email}</p>
-                            </div>
-                            <Badge variant={user.role === 'vendor' ? 'default' : 'secondary'}>
-                              {user.role}
-                            </Badge>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => updateUserMutation.mutate({ 
-                                id: user.id, 
-                                role: user.role === 'customer' ? 'vendor' : 'customer' 
-                              })}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => deleteUserMutation.mutate(user.id)}
-                              className="text-red-600 hover:text-red-700"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="vendors" className="space-y-6 mt-0">
-                <div className="flex items-center space-x-4">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input
-                      placeholder="Search vendors..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                </div>
-
-                <Card className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border border-white/20">
-                  <CardHeader>
-                    <CardTitle>Vendor Management</CardTitle>
-                    <CardDescription>Manage vendor accounts and approvals</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4 max-h-96 overflow-y-auto scrollbar-hidden">
-                      {filteredVendors.map((vendor: any) => (
-                        <div key={vendor.id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                          <div className="flex items-center space-x-4">
-                            <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-medium">
-                              {vendor.name?.charAt(0) || 'V'}
-                            </div>
-                            <div>
-                              <p className="font-medium">{vendor.name}</p>
-                              <p className="text-sm text-gray-500">{vendor.email}</p>
-                              <p className="text-xs text-gray-400">Products: {vendor.product_count || 0}</p>
-                            </div>
-                            <Badge variant="default">Vendor</Badge>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => updateUserMutation.mutate({ id: vendor.id, role: 'customer' })}
-                              className="text-red-600 hover:text-red-700"
-                            >
-                              <UserX className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="products" className="space-y-6 mt-0">
-                <div className="flex items-center space-x-4">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input
-                      placeholder="Search products..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                </div>
-
-                <Card className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border border-white/20">
-                  <CardHeader>
-                    <CardTitle>Product Management</CardTitle>
-                    <CardDescription>Oversee all products on the platform</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4 max-h-96 overflow-y-auto scrollbar-hidden">
-                      {filteredProducts.map((product: any) => (
-                        <div key={product.id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                          <div className="flex items-center space-x-4">
-                            <div className="w-12 h-12 bg-gray-200 dark:bg-gray-600 rounded-lg flex items-center justify-center">
-                              <Package className="h-6 w-6 text-gray-500" />
-                            </div>
-                            <div>
-                              <p className="font-medium">{product.name}</p>
-                              <p className="text-sm text-gray-500">{product.category}</p>
-                              <p className="text-sm text-emerald-600 font-medium">${product.price}</p>
-                            </div>
-                            <Badge variant={product.stock > 0 ? 'default' : 'destructive'}>
-                              Stock: {product.stock}
-                            </Badge>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <span className="text-sm text-gray-500">By: {product.vendor_name}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="settings" className="space-y-6 mt-0">
-                <Card className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border border-white/20">
-                  <CardHeader>
-                    <CardTitle>Platform Settings</CardTitle>
-                    <CardDescription>Configure platform-wide settings</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div className="space-y-2">
-                        <Label>Platform Commission (%)</Label>
-                        <Input type="number" placeholder="5" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Minimum Order Amount</Label>
-                        <Input type="number" placeholder="10.00" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Default Currency</Label>
-                        <Select defaultValue="USD">
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="USD">USD</SelectItem>
-                            <SelectItem value="EUR">EUR</SelectItem>
-                            <SelectItem value="GBP">GBP</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Auto-approve Vendors</Label>
-                        <Select defaultValue="false">
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="true">Yes</SelectItem>
-                            <SelectItem value="false">No</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    <Button className="bg-emerald-500 hover:bg-emerald-600 text-white">
-                      Save Settings
-                    </Button>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+            <div className="flex-1 p-8 overflow-y-auto">
+              {renderSection()}
             </div>
-          </Tabs>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

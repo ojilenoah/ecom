@@ -176,10 +176,7 @@ export class SupabaseStorage implements IStorage {
       const supabase = getSupabaseClient();
       let query = supabase
         .from('products')
-        .select(`
-          *,
-          ratings (rating)
-        `)
+        .select('*')
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
@@ -198,23 +195,7 @@ export class SupabaseStorage implements IStorage {
         return [];
       }
 
-      // Calculate average ratings for each product
-      const productsWithRatings = (products || []).map(product => {
-        const ratings = product.ratings || [];
-        const averageRating = ratings.length > 0 
-          ? ratings.reduce((sum: number, r: any) => sum + r.rating, 0) / ratings.length 
-          : 0;
-        const reviewCount = ratings.length;
-        
-        return {
-          ...product,
-          average_rating: Math.round(averageRating * 10) / 10, // Round to 1 decimal place
-          review_count: reviewCount,
-          ratings: undefined // Remove ratings array from response
-        };
-      });
-
-      return productsWithRatings;
+      return products || [];
     } catch (error) {
       console.error('Get products error:', error);
       return [];
@@ -799,28 +780,17 @@ export class SupabaseStorage implements IStorage {
       const supabase = getSupabaseClient();
       const { data: products, error } = await supabase
         .from('products')
-        .select('*')
+        .select(`
+          *,
+          users(name, email)
+        `)
         .order('created_at', { ascending: false });
 
       if (error) {
         throw new Error(error.message);
       }
 
-      // Get vendor names separately to avoid relationship conflicts
-      const productsWithVendors = await Promise.all((products || []).map(async (product) => {
-        const { data: vendor } = await supabase
-          .from('users')
-          .select('name')
-          .eq('id', product.vendor_id)
-          .single();
-
-        return {
-          ...product,
-          vendor_name: vendor?.name || 'Unknown Vendor'
-        };
-      }));
-
-      return productsWithVendors;
+      return products || [];
     } catch (error) {
       console.error('Get all products for admin error:', error);
       return [];

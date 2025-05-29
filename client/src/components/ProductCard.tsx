@@ -9,8 +9,8 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, onClick }: ProductCardProps) {
-  const averageRating = (product as any).average_rating || 0;
-  const reviewCount = (product as any).review_count || 0;
+  const averageRating = 4.5; // TODO: Calculate from actual ratings
+  const reviewCount = 24; // TODO: Get from actual ratings
 
   return (
     <Card 

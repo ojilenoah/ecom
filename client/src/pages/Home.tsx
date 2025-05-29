@@ -8,7 +8,6 @@ import { AuthModal } from '@/components/modals/AuthModal';
 import { VendorDashboard } from '@/components/modals/VendorDashboard';
 import { AdminPanel } from '@/components/modals/AdminPanel';
 import { CheckoutModal } from '@/components/modals/CheckoutModal';
-import { OrderTrackingModal } from '@/components/modals/OrderTrackingModal';
 import { Navbar } from '@/components/Navbar';
 import { useAuth } from '@/hooks/useAuth';
 import { Product } from '@shared/schema';
@@ -20,16 +19,15 @@ export default function Home() {
   const [isVendorDashboardOpen, setIsVendorDashboardOpen] = useState(false);
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  const [isOrderTrackingOpen, setIsOrderTrackingOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const { currentUser } = useAuth();
 
-  const { data: products = [], isLoading } = useQuery<Product[]>({
+  const { data: products = [], isLoading } = useQuery({
     queryKey: ['/api/products', selectedCategory, searchQuery],
   });
 
-  const { data: categories = [] } = useQuery<string[]>({
+  const { data: categories = [] } = useQuery({
     queryKey: ['/api/categories'],
   });
 
@@ -67,7 +65,6 @@ export default function Home() {
         onVendorDashboard={() => setIsVendorDashboardOpen(true)}
         onAdminPanel={() => setIsAdminPanelOpen(true)}
         onProfileClick={handleProfileClick}
-        onOrderTracking={() => setIsOrderTrackingOpen(true)}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
       />
@@ -158,13 +155,6 @@ export default function Home() {
         onClose={() => setIsCheckoutOpen(false)}
         total={0} // TODO: Calculate actual total from cart
       />
-
-      {currentUser?.role === 'customer' && (
-        <OrderTrackingModal
-          isOpen={isOrderTrackingOpen}
-          onClose={() => setIsOrderTrackingOpen(false)}
-        />
-      )}
     </div>
   );
 }
