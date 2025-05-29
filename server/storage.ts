@@ -799,17 +799,28 @@ export class SupabaseStorage implements IStorage {
       const supabase = getSupabaseClient();
       const { data: products, error } = await supabase
         .from('products')
-        .select(`
-          *,
-          users(name, email)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) {
         throw new Error(error.message);
       }
 
-      return products || [];
+      // Get vendor names separately to avoid relationship conflicts
+      const productsWithVendors = await Promise.all((products || []).map(async (product) => {
+        const { data: vendor } = await supabase
+          .from('users')
+          .select('name')
+          .eq('id', product.vendor_id)
+          .single();
+
+        return {
+          ...product,
+          vendor_name: vendor?.name || 'Unknown Vendor'
+        };
+      }));
+
+      return productsWithVendors;
     } catch (error) {
       console.error('Get all products for admin error:', error);
       return [];
