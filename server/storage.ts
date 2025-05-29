@@ -176,7 +176,10 @@ export class SupabaseStorage implements IStorage {
       const supabase = getSupabaseClient();
       let query = supabase
         .from('products')
-        .select('*')
+        .select(`
+          *,
+          ratings (rating)
+        `)
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
@@ -195,7 +198,23 @@ export class SupabaseStorage implements IStorage {
         return [];
       }
 
-      return products || [];
+      // Calculate average ratings for each product
+      const productsWithRatings = (products || []).map(product => {
+        const ratings = product.ratings || [];
+        const averageRating = ratings.length > 0 
+          ? ratings.reduce((sum: number, r: any) => sum + r.rating, 0) / ratings.length 
+          : 0;
+        const reviewCount = ratings.length;
+        
+        return {
+          ...product,
+          average_rating: Math.round(averageRating * 10) / 10, // Round to 1 decimal place
+          review_count: reviewCount,
+          ratings: undefined // Remove ratings array from response
+        };
+      });
+
+      return productsWithRatings;
     } catch (error) {
       console.error('Get products error:', error);
       return [];
