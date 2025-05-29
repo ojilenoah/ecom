@@ -26,13 +26,14 @@ export function Navbar({
   onVendorDashboard, 
   onAdminPanel, 
   onProfileClick,
+  onOrderTracking,
   searchQuery,
   onSearchChange 
 }: NavbarProps) {
   const { theme, toggleTheme } = useTheme();
   const { currentUser, logout } = useAuth();
 
-  const { data: cartCount = 0 } = useQuery({
+  const { data: cartCount = 0 } = useQuery<number>({
     queryKey: ['/api/cart/count'],
     enabled: !!currentUser && currentUser.role !== 'admin',
   });
@@ -124,6 +125,13 @@ export function Navbar({
                     <User className="mr-2 h-4 w-4" />
                     Profile
                   </DropdownMenuItem>
+                  
+                  {currentUser.role === 'customer' && (
+                    <DropdownMenuItem onClick={onOrderTracking}>
+                      <Package className="mr-2 h-4 w-4" />
+                      Order Tracking
+                    </DropdownMenuItem>
+                  )}
                   
                   {currentUser.role === 'vendor' && (
                     <DropdownMenuItem onClick={onVendorDashboard}>
