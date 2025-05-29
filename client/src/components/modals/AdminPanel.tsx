@@ -18,13 +18,50 @@ type AdminSection = 'dashboard' | 'users' | 'vendors' | 'products' | 'settings';
 
 export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
   const [activeSection, setActiveSection] = useState<AdminSection>('dashboard');
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const { data: platformStats } = useQuery({
+  const { data: platformStats } = useQuery<{
+    users: number;
+    vendors: number;
+    products: number;
+    revenue: string;
+  }>({
     queryKey: ['/api/admin/stats'],
   });
 
-  const { data: recentActivity = [] } = useQuery({
+  const { data: recentActivity = [] } = useQuery<any[]>({
     queryKey: ['/api/admin/activity'],
+  });
+
+  const { data: allUsers = [] } = useQuery<any[]>({
+    queryKey: ['/api/admin/users'],
+    enabled: activeSection === 'users',
+  });
+
+  const { data: allVendors = [] } = useQuery<any[]>({
+    queryKey: ['/api/admin/vendors'],
+    enabled: activeSection === 'vendors',
+  });
+
+  const { data: allProducts = [] } = useQuery<any[]>({
+    queryKey: ['/api/admin/products'],
+    enabled: activeSection === 'products',
+  });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      return apiRequest('DELETE', `/api/admin/users/${userId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/vendors'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
+      toast({
+        title: 'User deleted',
+        description: 'User has been successfully removed.',
+      });
+    },
   });
 
   const navItems = [
@@ -120,21 +157,219 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
         return (
           <div>
             <h2 className="text-2xl font-bold mb-6">User Management</h2>
-            <p className="text-gray-500">User management interface would be implemented here.</p>
+            
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-semibold">All Users ({allUsers.length})</h3>
+              </div>
+              
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200 dark:border-gray-700">
+                      <th className="text-left py-3 px-4 font-semibold">User</th>
+                      <th className="text-left py-3 px-4 font-semibold">Email</th>
+                      <th className="text-left py-3 px-4 font-semibold">Role</th>
+                      <th className="text-left py-3 px-4 font-semibold">Status</th>
+                      <th className="text-left py-3 px-4 font-semibold">Joined</th>
+                      <th className="text-left py-3 px-4 font-semibold">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {allUsers.map((user: any) => (
+                      <tr key={user.id} className="border-b border-gray-100 dark:border-gray-700">
+                        <td className="py-4 px-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-800 rounded-full flex items-center justify-center">
+                              <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                                {user.name?.charAt(0) || 'U'}
+                              </span>
+                            </div>
+                            <div>
+                              <p className="font-medium">{user.name || 'Unknown'}</p>
+                              <p className="text-sm text-gray-500">ID: {user.id.slice(0, 8)}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-4 px-4">{user.email}</td>
+                        <td className="py-4 px-4">
+                          <Badge variant={user.role === 'vendor' ? 'default' : 'secondary'}>
+                            {user.role}
+                          </Badge>
+                        </td>
+                        <td className="py-4 px-4">
+                          <Badge variant="outline" className="text-green-600 border-green-600">
+                            Active
+                          </Badge>
+                        </td>
+                        <td className="py-4 px-4 text-sm text-gray-500">
+                          {new Date(user.created_at).toLocaleDateString()}
+                        </td>
+                        <td className="py-4 px-4">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => deleteUserMutation.mutate(user.id)}
+                            disabled={deleteUserMutation.isPending}
+                            className="text-red-600 border-red-600 hover:bg-red-50 dark:hover:bg-red-900"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                
+                {allUsers.length === 0 && (
+                  <div className="text-center py-8">
+                    <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500">No users found</p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         );
       case 'vendors':
         return (
           <div>
             <h2 className="text-2xl font-bold mb-6">Vendor Management</h2>
-            <p className="text-gray-500">Vendor approval and management interface would be implemented here.</p>
+            
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-semibold">All Vendors ({allVendors.length})</h3>
+              </div>
+              
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200 dark:border-gray-700">
+                      <th className="text-left py-3 px-4 font-semibold">Vendor</th>
+                      <th className="text-left py-3 px-4 font-semibold">Email</th>
+                      <th className="text-left py-3 px-4 font-semibold">Business</th>
+                      <th className="text-left py-3 px-4 font-semibold">Products</th>
+                      <th className="text-left py-3 px-4 font-semibold">Status</th>
+                      <th className="text-left py-3 px-4 font-semibold">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {allVendors.map((vendor: any) => (
+                      <tr key={vendor.id} className="border-b border-gray-100 dark:border-gray-700">
+                        <td className="py-4 px-4">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-800 rounded-full flex items-center justify-center">
+                              <Store className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <div>
+                              <p className="font-medium">{vendor.name || 'Unknown'}</p>
+                              <p className="text-sm text-gray-500">ID: {vendor.id.slice(0, 8)}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-4 px-4">{vendor.email}</td>
+                        <td className="py-4 px-4">
+                          <div>
+                            <p className="font-medium">{vendor.business_name || 'N/A'}</p>
+                            <p className="text-sm text-gray-500">{vendor.business_type || 'General'}</p>
+                          </div>
+                        </td>
+                        <td className="py-4 px-4">
+                          <Badge variant="outline">
+                            {vendor.product_count || 0} products
+                          </Badge>
+                        </td>
+                        <td className="py-4 px-4">
+                          <Badge variant="outline" className="text-green-600 border-green-600">
+                            Active
+                          </Badge>
+                        </td>
+                        <td className="py-4 px-4">
+                          <div className="flex space-x-2">
+                            <Button variant="outline" size="sm">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => deleteUserMutation.mutate(vendor.id)}
+                              disabled={deleteUserMutation.isPending}
+                              className="text-red-600 border-red-600 hover:bg-red-50 dark:hover:bg-red-900"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                
+                {allVendors.length === 0 && (
+                  <div className="text-center py-8">
+                    <Store className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500">No vendors found</p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         );
       case 'products':
         return (
           <div>
             <h2 className="text-2xl font-bold mb-6">Product Management</h2>
-            <p className="text-gray-500">Global product management interface would be implemented here.</p>
+            
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-semibold">All Products ({allProducts.length})</h3>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {allProducts.map((product: any) => (
+                  <div key={product.id} className="bg-white dark:bg-gray-700 rounded-xl p-4 border">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1">
+                        <h4 className="font-semibold truncate">{product.name}</h4>
+                        <p className="text-sm text-gray-500">{product.category}</p>
+                      </div>
+                      <div className="flex space-x-1">
+                        <Button variant="outline" size="sm">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button variant="outline" size="sm" className="text-red-600 border-red-600">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-500">Price:</span>
+                        <span className="font-semibold text-emerald-600">${product.price}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-500">Stock:</span>
+                        <Badge variant={product.stock > 0 ? "default" : "destructive"}>
+                          {product.stock} units
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-500">Vendor:</span>
+                        <span className="text-sm">{product.vendor_name || 'Unknown'}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {allProducts.length === 0 && (
+                <div className="text-center py-8">
+                  <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500">No products found</p>
+                </div>
+              )}
+            </div>
           </div>
         );
       case 'settings':
