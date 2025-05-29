@@ -86,17 +86,7 @@ export function CartModal({ isOpen, onClose, onCheckout }: CartModalProps) {
       <DialogContent className="max-w-lg bg-white/90 dark:bg-black/90 backdrop-blur-xl border border-white/20 shadow-xl shadow-emerald-500/10 ring-1 ring-emerald-400/20">
         <DialogTitle className="sr-only">Shopping Cart</DialogTitle>
         <DialogDescription className="sr-only">View and manage items in your shopping cart</DialogDescription>
-        <div className="relative">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-black/20 hover:bg-black/30 text-white"
-          >
-            <X className="h-5 w-5" />
-          </Button>
-          
-          <div className="p-6">
+        <div className="p-6">
             <h2 className="text-2xl font-bold mb-6 flex items-center space-x-2">
               <ShoppingCart className="h-6 w-6 text-emerald-500" />
               <span>Shopping Cart</span>

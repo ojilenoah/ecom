@@ -74,17 +74,7 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
         <DialogDescription className="sr-only">
           View product details and add to cart
         </DialogDescription>
-        <div className="relative">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-black/20 hover:bg-black/30 text-white"
-          >
-            <X className="h-5 w-5" />
-          </Button>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
             {/* Product Image */}
             <div className="space-y-4">
               <div className="aspect-square rounded-2xl overflow-hidden">
