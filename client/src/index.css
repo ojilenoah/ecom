@@ -1,0 +1,164 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 210 11% 98%; /* #f9fafb */
+  --foreground: 210 11% 15%; /* #1a1a1a */
+  --muted: 210 11% 96%; /* #f5f5f5 */
+  --muted-foreground: 215 16% 47%; /* #6b7280 */
+  --popover: 0 0% 100%; /* #ffffff */
+  --popover-foreground: 210 11% 15%; /* #1a1a1a */
+  --card: 0 0% 100%; /* #ffffff */
+  --card-foreground: 210 11% 15%; /* #1a1a1a */
+  --border: 214 32% 91%; /* #e5e7eb */
+  --input: 214 32% 91%; /* #e5e7eb */
+  --primary: 158 64% 52%; /* #10b981 */
+  --primary-foreground: 0 0% 100%; /* #ffffff */
+  --secondary: 210 11% 96%; /* #f5f5f5 */
+  --secondary-foreground: 210 11% 15%; /* #1a1a1a */
+  --accent: 210 11% 96%; /* #f5f5f5 */
+  --accent-foreground: 210 11% 15%; /* #1a1a1a */
+  --destructive: 0 84% 60%; /* #ef4444 */
+  --destructive-foreground: 0 0% 100%; /* #ffffff */
+  --ring: 158 64% 52%; /* #10b981 */
+  --radius: 0.75rem;
+  
+  /* Chart colors */
+  --chart-1: 158 64% 52%; /* #10b981 */
+  --chart-2: 217 91% 60%; /* #3b82f6 */
+  --chart-3: 262 83% 58%; /* #a855f7 */
+  --chart-4: 43 96% 56%; /* #f59e0b */
+  --chart-5: 27 87% 67%; /* #ef4444 */
+
+  /* Sidebar colors */
+  --sidebar-background: 0 0% 100%; /* #ffffff */
+  --sidebar-foreground: 210 11% 15%; /* #1a1a1a */
+  --sidebar-primary: 158 64% 52%; /* #10b981 */
+  --sidebar-primary-foreground: 0 0% 100%; /* #ffffff */
+  --sidebar-accent: 210 11% 96%; /* #f5f5f5 */
+  --sidebar-accent-foreground: 210 11% 15%; /* #1a1a1a */
+  --sidebar-border: 214 32% 91%; /* #e5e7eb */
+  --sidebar-ring: 158 64% 52%; /* #10b981 */
+}
+
+.dark {
+  --background: 224 71% 4%; /* #0f0f0f */
+  --foreground: 210 20% 98%; /* #f5f5f5 */
+  --muted: 215 28% 17%; /* #1a1a1a */
+  --muted-foreground: 217 10% 65%; /* #9ca3af */
+  --popover: 224 71% 4%; /* #0f0f0f */
+  --popover-foreground: 210 20% 98%; /* #f5f5f5 */
+  --card: 215 28% 17%; /* #1a1a1a */
+  --card-foreground: 210 20% 98%; /* #f5f5f5 */
+  --border: 215 28% 17%; /* #2c2c2c */
+  --input: 215 28% 17%; /* #2c2c2c */
+  --primary: 158 64% 52%; /* #10b981 */
+  --primary-foreground: 0 0% 100%; /* #ffffff */
+  --secondary: 215 28% 17%; /* #1a1a1a */
+  --secondary-foreground: 210 20% 98%; /* #f5f5f5 */
+  --accent: 215 28% 17%; /* #1a1a1a */
+  --accent-foreground: 210 20% 98%; /* #f5f5f5 */
+  --destructive: 0 63% 31%; /* #dc2626 */
+  --destructive-foreground: 210 20% 98%; /* #f5f5f5 */
+  --ring: 158 64% 52%; /* #10b981 */
+  
+  /* Chart colors for dark mode */
+  --chart-1: 158 64% 52%; /* #10b981 */
+  --chart-2: 217 91% 60%; /* #3b82f6 */
+  --chart-3: 262 83% 58%; /* #a855f7 */
+  --chart-4: 43 96% 56%; /* #f59e0b */
+  --chart-5: 27 87% 67%; /* #ef4444 */
+
+  /* Sidebar colors for dark mode */
+  --sidebar-background: 215 28% 17%; /* #1a1a1a */
+  --sidebar-foreground: 210 20% 98%; /* #f5f5f5 */
+  --sidebar-primary: 158 64% 52%; /* #10b981 */
+  --sidebar-primary-foreground: 0 0% 100%; /* #ffffff */
+  --sidebar-accent: 215 28% 12%; /* #0f0f0f */
+  --sidebar-accent-foreground: 210 20% 98%; /* #f5f5f5 */
+  --sidebar-border: 215 28% 17%; /* #2c2c2c */
+  --sidebar-ring: 158 64% 52%; /* #10b981 */
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-muted;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-border rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-accent-foreground/20;
+  }
+}
+
+@layer utilities {
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+}
+
+/* Frosted glass effect utilities */
+@layer components {
+  .frosted-glass {
+    @apply bg-white/20 dark:bg-black/20 backdrop-blur-xl border border-white/10 shadow-xl;
+  }
+
+  .frosted-glass-emerald {
+    @apply frosted-glass shadow-emerald-500/10 ring-1 ring-emerald-400/20;
+  }
+
+  .ambient-glow {
+    position: relative;
+  }
+
+  .ambient-glow::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    @apply bg-emerald-400/30 rounded-t-xl;
+    animation: twinkle 3s ease-in-out infinite alternate;
+  }
+
+  @keyframes twinkle {
+    0% { opacity: 0.3; }
+    100% { opacity: 0.8; }
+  }
+}
