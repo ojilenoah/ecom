@@ -1,4 +1,4 @@
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -111,6 +111,12 @@ export function AuthModal({ isOpen, onClose, initialMode = 'login' }: AuthModalP
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md bg-white/90 dark:bg-black/90 backdrop-blur-xl border border-white/20 shadow-xl shadow-emerald-500/10 ring-1 ring-emerald-400/20">
+        <DialogTitle className="sr-only">
+          {mode === 'login' ? 'Sign In' : 'Create Account'}
+        </DialogTitle>
+        <DialogDescription className="sr-only">
+          {mode === 'login' ? 'Sign in to your SoftShop account' : 'Create a new SoftShop account'}
+        </DialogDescription>
         <div className="relative">
           <Button
             variant="ghost"

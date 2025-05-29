@@ -1,7 +1,7 @@
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Star, Store, Minus, Plus, ShoppingCart, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -19,6 +19,13 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
   const { currentUser } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Reset quantity when product changes
+  useEffect(() => {
+    if (product) {
+      setQuantity(1);
+    }
+  }, [product]);
 
   const addToCartMutation = useMutation({
     mutationFn: async (data: { product_id: string; quantity: number }) => {
@@ -61,6 +68,12 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-white/90 dark:bg-black/90 backdrop-blur-xl border border-white/20 shadow-xl shadow-emerald-500/10 ring-1 ring-emerald-400/20">
+        <DialogTitle className="sr-only">
+          {product.name} - Product Details
+        </DialogTitle>
+        <DialogDescription className="sr-only">
+          View product details and add to cart
+        </DialogDescription>
         <div className="relative">
           <Button
             variant="ghost"
