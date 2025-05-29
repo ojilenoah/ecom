@@ -129,18 +129,73 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
             </div>
           </div>
 
-          <Tabs value={activeSection} onValueChange={(value) => setActiveSection(value as AdminSection)} className="flex-1 flex flex-col">
-            <TabsList className="grid w-full grid-cols-5 mb-6">
-              <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-              <TabsTrigger value="users">Users</TabsTrigger>
-              <TabsTrigger value="vendors">Vendors</TabsTrigger>
-              <TabsTrigger value="products">Products</TabsTrigger>
-              <TabsTrigger value="settings">Settings</TabsTrigger>
-            </TabsList>
+          <div className="flex flex-1 gap-6">
+            {/* Sidebar */}
+            <div className="w-64 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm border border-white/20 rounded-2xl p-6">
+              <nav className="space-y-2">
+                <button
+                  onClick={() => setActiveSection('dashboard')}
+                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-colors ${
+                    activeSection === 'dashboard'
+                      ? 'bg-emerald-500 text-white'
+                      : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  <Activity className="h-5 w-5" />
+                  <span>Dashboard</span>
+                </button>
+                <button
+                  onClick={() => setActiveSection('users')}
+                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-colors ${
+                    activeSection === 'users'
+                      ? 'bg-emerald-500 text-white'
+                      : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  <Users className="h-5 w-5" />
+                  <span>Users</span>
+                </button>
+                <button
+                  onClick={() => setActiveSection('vendors')}
+                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-colors ${
+                    activeSection === 'vendors'
+                      ? 'bg-emerald-500 text-white'
+                      : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  <Store className="h-5 w-5" />
+                  <span>Vendors</span>
+                </button>
+                <button
+                  onClick={() => setActiveSection('products')}
+                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-colors ${
+                    activeSection === 'products'
+                      ? 'bg-emerald-500 text-white'
+                      : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  <Package className="h-5 w-5" />
+                  <span>Products</span>
+                </button>
+                <button
+                  onClick={() => setActiveSection('settings')}
+                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-colors ${
+                    activeSection === 'settings'
+                      ? 'bg-emerald-500 text-white'
+                      : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  <Settings className="h-5 w-5" />
+                  <span>Settings</span>
+                </button>
+              </nav>
+            </div>
 
+            {/* Main Content */}
             <div className="flex-1 overflow-y-auto scrollbar-hidden">
-              <TabsContent value="dashboard" className="space-y-6 mt-0">
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              {activeSection === 'dashboard' && (
+                <div className="space-y-6">
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                   <StatCard
                     title="Total Users"
                     value={adminStats?.users || 0}
