@@ -33,6 +33,7 @@ export interface IStorage {
   getProducts(category?: string, search?: string): Promise<Product[]>;
   getCategories(): Promise<string[]>;
   getVendorProducts(vendorId: string): Promise<Product[]>;
+  getProductById(id: string): Promise<Product | null>;
   createProduct(product: InsertProduct): Promise<Product>;
   updateProduct(id: string, updates: Partial<Product>): Promise<Product>;
   deleteProduct(id: string): Promise<void>;
@@ -242,6 +243,29 @@ export class SupabaseStorage implements IStorage {
     } catch (error) {
       console.error('Get vendor products error:', error);
       return [];
+    }
+  }
+
+  async getProductById(id: string): Promise<Product | null> {
+    try {
+      const supabase = getSupabaseClient();
+      const { data: product, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        if (error.code === 'PGRST116') {
+          return null; // Product not found
+        }
+        throw new Error(error.message);
+      }
+
+      return product;
+    } catch (error) {
+      console.error('Get product by ID error:', error);
+      return null;
     }
   }
 
@@ -547,60 +571,59 @@ export class SupabaseStorage implements IStorage {
   async getVendorStats(vendorId: string): Promise<any> {
     try {
       const supabase = getSupabaseClient();
-      // Get vendor's products
-      const { data: products, error: productsError } = await supabase
+      
+      // Get vendor's products count
+      const { count: productCount, error: productsError } = await supabase
         .from('products')
-        .select('id')
-        .eq('vendor_id', vendorId);
+        .select('*', { count: 'exact', head: true })
+        .eq('vendor_id', vendorId)
+        .eq('is_active', true);
 
       if (productsError) {
-        throw productsError;
+        console.error('Get vendor products count error:', productsError);
       }
 
-      const productIds = products?.map((p: any) => p.id) || [];
-
-      // Get orders containing vendor's products
+      // Get vendor's orders and calculate revenue
       const { data: orders, error: ordersError } = await supabase
         .from('orders')
-        .select('total, status, items')
-        .eq('status', 'fulfilled');
+        .select('total, status')
+        .eq('vendor_id', vendorId)
+        .eq('status', 'paid');
 
       if (ordersError) {
-        throw ordersError;
+        console.error('Get vendor orders error:', ordersError);
       }
 
-      // Calculate vendor-specific revenue
-      let totalRevenue = 0;
-      let totalOrders = 0;
+      const totalRevenue = orders?.reduce((sum, order) => sum + parseFloat(order.total), 0) || 0;
+      const orderCount = orders?.length || 0;
 
-      orders?.forEach((order: any) => {
-        if (order.items && Array.isArray(order.items)) {
-          const vendorItems = order.items.filter((item: any) => 
-            productIds.includes(item.product?.id || item.product_id)
-          );
-          
-          if (vendorItems.length > 0) {
-            totalOrders++;
-            vendorItems.forEach((item: any) => {
-              totalRevenue += parseFloat(item.product?.price || '0') * (item.quantity || 0);
-            });
-          }
-        }
-      });
+      // Get average rating for vendor's products
+      const { data: ratings, error: ratingsError } = await supabase
+        .from('ratings')
+        .select('rating, products!inner(vendor_id)')
+        .eq('products.vendor_id', vendorId);
+
+      if (ratingsError) {
+        console.error('Get vendor ratings error:', ratingsError);
+      }
+
+      const averageRating = ratings && ratings.length > 0 
+        ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length 
+        : 0;
 
       return {
         revenue: totalRevenue.toFixed(2),
-        orders: totalOrders,
-        products: products?.length || 0,
-        rating: '4.8' // TODO: Calculate from actual ratings
+        orders: orderCount,
+        products: productCount || 0,
+        rating: averageRating.toFixed(1)
       };
     } catch (error) {
       console.error('Get vendor stats error:', error);
       return {
-        revenue: '0',
+        revenue: "0.00",
         orders: 0,
         products: 0,
-        rating: '0'
+        rating: "0.0"
       };
     }
   }
@@ -608,6 +631,7 @@ export class SupabaseStorage implements IStorage {
   async getAdminStats(): Promise<any> {
     try {
       const supabase = getSupabaseClient();
+      
       // Get user count
       const { count: userCount, error: userError } = await supabase
         .from('users')
@@ -631,17 +655,15 @@ export class SupabaseStorage implements IStorage {
       const { data: orders, error: ordersError } = await supabase
         .from('orders')
         .select('total')
-        .eq('status', 'fulfilled');
+        .eq('status', 'paid');
 
-      const totalRevenue = orders?.reduce((sum: number, order: any) => 
-        sum + parseFloat(order.total || '0'), 0
-      ) || 0;
+      const totalRevenue = orders?.reduce((sum, order) => sum + parseFloat(order.total), 0) || 0;
 
       return {
         users: userCount || 0,
         vendors: vendorCount || 0,
         products: productCount || 0,
-        revenue: totalRevenue.toFixed(0)
+        revenue: totalRevenue.toFixed(2)
       };
     } catch (error) {
       console.error('Get admin stats error:', error);
@@ -649,7 +671,7 @@ export class SupabaseStorage implements IStorage {
         users: 0,
         vendors: 0,
         products: 0,
-        revenue: '0'
+        revenue: "0.00"
       };
     }
   }
@@ -657,12 +679,48 @@ export class SupabaseStorage implements IStorage {
   async getRecentActivity(): Promise<any[]> {
     try {
       const supabase = getSupabaseClient();
+      const activity: any[] = [];
+
       // Get recent orders
       const { data: recentOrders, error: ordersError } = await supabase
         .from('orders')
-        .select('total, created_at')
+        .select('id, created_at, status, total, users(name)')
         .order('created_at', { ascending: false })
-        .limit(5);
+        .limit(10);
+
+      // Get recent users
+      const { data: recentUsers, error: usersError } = await supabase
+        .from('users')
+        .select('name, created_at, role')
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (recentOrders) {
+        recentOrders.forEach((order: any) => {
+          activity.push({
+            type: 'order',
+            message: `Order placed by ${order.users?.name || 'Unknown'} - $${order.total}`,
+            timestamp: order.created_at
+          });
+        });
+      }
+
+      if (recentUsers) {
+        recentUsers.forEach((user: any) => {
+          activity.push({
+            type: 'user',
+            message: `New ${user.role} registered: ${user.name}`,
+            timestamp: user.created_at
+          });
+        });
+      }
+
+      return activity.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    } catch (error) {
+      console.error('Get recent activity error:', error);
+      return [];
+    }
+  }
 
       // Get recent users
       const { data: recentUsers, error: usersError } = await supabase
