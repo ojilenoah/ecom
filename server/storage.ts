@@ -741,14 +741,16 @@ export class SupabaseStorage implements IStorage {
       return profile || {
         brand_name: '',
         bio: '',
-        contact_email: ''
+        contact_email: '',
+        logo_url: ''
       };
     } catch (error) {
       console.error('Get vendor profile error:', error);
       return {
         brand_name: '',
         bio: '',
-        contact_email: ''
+        contact_email: '',
+        logo_url: ''
       };
     }
   }

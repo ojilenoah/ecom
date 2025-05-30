@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/compone
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { X, User, Mail, Phone, MapPin, Building, Save } from 'lucide-react';
+import { X, User, Mail, Phone, MapPin, Building, Save, Image } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -22,7 +22,8 @@ export function VendorProfileModal({ isOpen, onClose }: VendorProfileModalProps)
   const [profileData, setProfileData] = useState({
     brand_name: '',
     bio: '',
-    contact_email: ''
+    contact_email: '',
+    logo_url: ''
   });
 
   // Get current vendor profile
@@ -37,7 +38,8 @@ export function VendorProfileModal({ isOpen, onClose }: VendorProfileModalProps)
       setProfileData({
         brand_name: (vendorProfile as any).brand_name || '',
         bio: (vendorProfile as any).bio || '',
-        contact_email: (vendorProfile as any).contact_email || ''
+        contact_email: (vendorProfile as any).contact_email || '',
+        logo_url: (vendorProfile as any).logo_url || ''
       });
     }
   }, [vendorProfile]);
@@ -136,6 +138,22 @@ export function VendorProfileModal({ isOpen, onClose }: VendorProfileModalProps)
                     className="bg-white dark:bg-gray-800"
                   />
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="logo_url" className="flex items-center space-x-2">
+                  <Image className="h-4 w-4" />
+                  <span>Logo URL</span>
+                </Label>
+                <Input
+                  id="logo_url"
+                  type="url"
+                  value={profileData.logo_url}
+                  onChange={(e) => handleInputChange('logo_url', e.target.value)}
+                  placeholder="https://example.com/logo.png"
+                  className="bg-white dark:bg-gray-800"
+                />
+                <p className="text-sm text-gray-500">Add a URL to your business logo. This will appear on your products and dashboard.</p>
               </div>
 
               <div className="space-y-2">
