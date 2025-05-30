@@ -22,7 +22,7 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
 
   // Get product rating
   const { data: productRating } = useQuery<{ average_rating: number; review_count: number }>({
-    queryKey: ['/api/products', product?.id, 'rating'],
+    queryKey: [`/api/products/${product?.id}/rating`],
     enabled: !!product?.id,
   });
 

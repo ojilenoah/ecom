@@ -11,7 +11,7 @@ interface ProductCardProps {
 
 export function ProductCard({ product, onClick }: ProductCardProps) {
   const { data: productRating } = useQuery<{ average_rating: number; review_count: number }>({
-    queryKey: ['/api/products', product.id, 'rating'],
+    queryKey: [`/api/products/${product.id}/rating`],
   });
 
   const { data: vendorInfo } = useQuery<{ name: string; email: string }>({
