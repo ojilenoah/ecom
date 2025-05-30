@@ -65,6 +65,10 @@ export interface IStorage {
   deleteUser(id: string): Promise<void>;
   rateOrder(userId: string, orderId: string, rating: number, comment?: string): Promise<void>;
   getProductRating(productId: string): Promise<{ average_rating: number; review_count: number }>;
+  
+  // Settings
+  getAllSettings(): Promise<any>;
+  updateSettings(settings: any): Promise<void>;
 }
 
 export class SupabaseStorage implements IStorage {
@@ -84,10 +88,13 @@ export class SupabaseStorage implements IStorage {
         'ALTER TABLE vendor_profiles ADD COLUMN IF NOT EXISTS phone_number TEXT'
       ];
 
+      // Try to add missing columns (will fail silently if not supported)
       for (const query of alterQueries) {
-        await supabase.rpc('exec_sql', { sql: query }).catch(() => {
+        try {
+          await supabase.rpc('exec_sql', { sql: query });
+        } catch (error) {
           // Ignore errors if columns already exist or RPC not available
-        });
+        }
       }
 
       // Add default settings
@@ -103,12 +110,13 @@ export class SupabaseStorage implements IStorage {
       ];
 
       for (const setting of defaultSettings) {
-        await supabase
-          .from('settings')
-          .upsert(setting, { onConflict: 'key' })
-          .catch(() => {
-            // Ignore upsert errors
-          });
+        try {
+          await supabase
+            .from('settings')
+            .upsert(setting, { onConflict: 'key' });
+        } catch (error) {
+          // Ignore upsert errors
+        }
       }
     } catch (error) {
       console.log('Database initialization completed with some warnings (this is normal)');
@@ -1041,6 +1049,56 @@ export class SupabaseStorage implements IStorage {
     } catch (error) {
       console.error('Get product rating error:', error);
       return { average_rating: 0, review_count: 0 };
+    }
+  }
+
+  async getAllSettings(): Promise<any> {
+    try {
+      const supabase = getSupabaseClient();
+      const { data: settings, error } = await supabase
+        .from('settings')
+        .select('*')
+        .order('key');
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      // Convert array to object for easier access
+      const settingsObj = settings?.reduce((acc, setting) => {
+        acc[setting.key] = setting.value;
+        return acc;
+      }, {}) || {};
+
+      return settingsObj;
+    } catch (error) {
+      console.error('Get all settings error:', error);
+      return {};
+    }
+  }
+
+  async updateSettings(settings: any): Promise<void> {
+    try {
+      const supabase = getSupabaseClient();
+      
+      // Convert object to array of key-value pairs for upsert
+      const settingsArray = Object.entries(settings).map(([key, value]) => ({
+        key,
+        value: String(value)
+      }));
+
+      for (const setting of settingsArray) {
+        const { error } = await supabase
+          .from('settings')
+          .upsert(setting, { onConflict: 'key' });
+
+        if (error) {
+          throw new Error(error.message);
+        }
+      }
+    } catch (error) {
+      console.error('Update settings error:', error);
+      throw new Error('Failed to update settings');
     }
   }
 }
