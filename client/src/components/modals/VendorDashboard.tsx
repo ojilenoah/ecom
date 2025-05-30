@@ -4,12 +4,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Store, X, Plus, Edit, Trash2, DollarSign, ShoppingCart, Package, Star } from 'lucide-react';
+import { Store, X, Plus, Edit, Trash2, DollarSign, ShoppingCart, Package, Star, User, Truck } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { apiRequest } from '@/lib/queryClient';
+import { VendorProfileModal } from './VendorProfileModal';
+import { OrderTrackingModal } from './OrderTrackingModal';
 
 interface VendorDashboardProps {
   isOpen: boolean;
@@ -22,6 +24,8 @@ export function VendorDashboard({ isOpen, onClose }: VendorDashboardProps) {
   const queryClient = useQueryClient();
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [showProfileEdit, setShowProfileEdit] = useState(false);
+  const [showOrderTracking, setShowOrderTracking] = useState(false);
   const [productForm, setProductForm] = useState({
     name: '',
     description: '',
@@ -206,13 +210,33 @@ export function VendorDashboard({ isOpen, onClose }: VendorDashboardProps) {
         <div className="relative">
           
           <div className="p-8">
-            <div className="flex items-center space-x-4 mb-8">
-              <div className="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center">
-                <Store className="h-8 w-8 text-white" />
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center space-x-4">
+                <div className="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center">
+                  <Store className="h-8 w-8 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-3xl font-bold">Vendor Dashboard</h2>
+                  <p className="text-gray-600 dark:text-gray-400">Manage your products and sales</p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-3xl font-bold">Vendor Dashboard</h2>
-                <p className="text-gray-600 dark:text-gray-400">Manage your products and sales</p>
+              <div className="flex space-x-3">
+                <Button
+                  onClick={() => setShowOrderTracking(true)}
+                  variant="outline"
+                  className="flex items-center space-x-2"
+                >
+                  <Truck className="h-4 w-4" />
+                  <span>Track Orders</span>
+                </Button>
+                <Button
+                  onClick={() => setShowProfileEdit(true)}
+                  variant="outline"
+                  className="flex items-center space-x-2"
+                >
+                  <User className="h-4 w-4" />
+                  <span>Edit Profile</span>
+                </Button>
               </div>
             </div>
             

@@ -28,7 +28,7 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
 
   // Get vendor information
   const { data: vendorInfo } = useQuery<{ name: string; email: string }>({
-    queryKey: ['/api/users', product?.vendor_id],
+    queryKey: [`/api/users/${product?.vendor_id}`],
     enabled: !!product?.vendor_id,
   });
 
