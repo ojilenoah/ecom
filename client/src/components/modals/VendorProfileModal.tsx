@@ -21,10 +21,7 @@ export function VendorProfileModal({ isOpen, onClose }: VendorProfileModalProps)
   
   const [profileData, setProfileData] = useState({
     brand_name: '',
-    business_name: '',
     bio: '',
-    phone_number: '',
-    business_address: '',
     contact_email: ''
   });
 
@@ -39,10 +36,7 @@ export function VendorProfileModal({ isOpen, onClose }: VendorProfileModalProps)
     if (vendorProfile && typeof vendorProfile === 'object') {
       setProfileData({
         brand_name: (vendorProfile as any).brand_name || '',
-        business_name: (vendorProfile as any).business_name || '',
         bio: (vendorProfile as any).bio || '',
-        phone_number: (vendorProfile as any).phone_number || '',
-        business_address: (vendorProfile as any).business_address || '',
         contact_email: (vendorProfile as any).contact_email || ''
       });
     }
@@ -129,20 +123,6 @@ export function VendorProfileModal({ isOpen, onClose }: VendorProfileModalProps)
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="business_name" className="flex items-center space-x-2">
-                    <Building className="h-4 w-4" />
-                    <span>Business Name</span>
-                  </Label>
-                  <Input
-                    id="business_name"
-                    value={profileData.business_name}
-                    onChange={(e) => handleInputChange('business_name', e.target.value)}
-                    placeholder="Your business name"
-                    className="bg-white dark:bg-gray-800"
-                  />
-                </div>
-
-                <div className="space-y-2">
                   <Label htmlFor="contact_email" className="flex items-center space-x-2">
                     <Mail className="h-4 w-4" />
                     <span>Business Email</span>
@@ -156,36 +136,6 @@ export function VendorProfileModal({ isOpen, onClose }: VendorProfileModalProps)
                     className="bg-white dark:bg-gray-800"
                   />
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="phone_number" className="flex items-center space-x-2">
-                    <Phone className="h-4 w-4" />
-                    <span>Contact Phone</span>
-                  </Label>
-                  <Input
-                    id="phone_number"
-                    value={profileData.phone_number}
-                    onChange={(e) => handleInputChange('phone_number', e.target.value)}
-                    placeholder="+1 (555) 123-4567"
-                    className="bg-white dark:bg-gray-800"
-                  />
-                </div>
-
-
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="business_address" className="flex items-center space-x-2">
-                  <MapPin className="h-4 w-4" />
-                  <span>Business Address</span>
-                </Label>
-                <Input
-                  id="business_address"
-                  value={profileData.business_address}
-                  onChange={(e) => handleInputChange('business_address', e.target.value)}
-                  placeholder="123 Business St, City, State 12345"
-                  className="bg-white dark:bg-gray-800"
-                />
               </div>
 
               <div className="space-y-2">
