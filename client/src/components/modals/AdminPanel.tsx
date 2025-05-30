@@ -459,12 +459,12 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-7xl max-h-[90vh] overflow-hidden bg-white/90 dark:bg-black/90 backdrop-blur-xl border border-white/20 shadow-xl shadow-emerald-500/10 ring-1 ring-emerald-400/20">
+      <DialogContent className="max-w-7xl w-[95vw] max-h-[90vh] overflow-hidden bg-white/90 dark:bg-black/90 backdrop-blur-xl border border-white/20 shadow-xl shadow-emerald-500/10 ring-1 ring-emerald-400/20">
         <div className="relative">
           
-          <div className="flex h-[80vh]">
+          <div className="flex flex-col lg:flex-row h-[80vh]">
             {/* Sidebar */}
-            <div className="w-64 bg-gray-50 dark:bg-gray-800 rounded-l-2xl p-6">
+            <div className="w-full lg:w-64 bg-gray-50 dark:bg-gray-800 rounded-t-2xl lg:rounded-l-2xl lg:rounded-t-none p-4 lg:p-6">
               <div className="flex items-center space-x-3 mb-8">
                 <div className="w-12 h-12 bg-emerald-500 rounded-lg flex items-center justify-center">
                   <Settings className="h-6 w-6 text-white" />
@@ -475,27 +475,29 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                 </div>
               </div>
               
-              <nav className="space-y-2">
-                {navItems.map((item) => (
-                  <Button
-                    key={item.id}
-                    variant={activeSection === item.id ? "default" : "ghost"}
-                    onClick={() => setActiveSection(item.id)}
-                    className={`w-full justify-start rounded-xl ${
-                      activeSection === item.id 
-                        ? 'bg-emerald-500 text-white hover:bg-emerald-600' 
-                        : 'hover:bg-gray-100 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    <item.icon className="mr-3 h-4 w-4" />
-                    {item.label}
-                  </Button>
-                ))}
+              <nav className="space-y-2 lg:space-y-2">
+                <div className="flex lg:flex-col overflow-x-auto lg:overflow-x-visible space-x-2 lg:space-x-0 lg:space-y-2 pb-2 lg:pb-0">
+                  {navItems.map((item) => (
+                    <Button
+                      key={item.id}
+                      variant={activeSection === item.id ? "default" : "ghost"}
+                      onClick={() => setActiveSection(item.id)}
+                      className={`flex-shrink-0 lg:w-full justify-start rounded-xl text-sm lg:text-base ${
+                        activeSection === item.id 
+                          ? 'bg-emerald-500 text-white hover:bg-emerald-600' 
+                          : 'hover:bg-gray-100 dark:hover:bg-gray-700'
+                      }`}
+                    >
+                      <item.icon className="mr-2 lg:mr-3 h-4 w-4" />
+                      <span className="hidden sm:inline">{item.label}</span>
+                    </Button>
+                  ))}
+                </div>
               </nav>
             </div>
             
             {/* Main Content */}
-            <div className="flex-1 p-8 overflow-y-auto">
+            <div className="flex-1 p-4 lg:p-8 overflow-y-auto">
               {renderSection()}
             </div>
           </div>
