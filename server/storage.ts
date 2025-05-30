@@ -934,11 +934,13 @@ export class SupabaseStorage implements IStorage {
   async getAllVendors(): Promise<any[]> {
     try {
       const supabase = getSupabaseClient();
+      
+      // Get vendors with their profiles
       const { data: vendors, error } = await supabase
         .from('users')
         .select(`
           *,
-          vendor_profiles(brand_name, contact_email, bio, is_approved)
+          vendor_profiles(brand_name, business_name, business_type, contact_email, bio, is_approved)
         `)
         .eq('role', 'vendor')
         .order('created_at', { ascending: false });
@@ -947,10 +949,29 @@ export class SupabaseStorage implements IStorage {
         throw new Error(error.message);
       }
 
-      return vendors?.map(vendor => {
+      // Get product counts for each vendor
+      const vendorsWithCounts = await Promise.all((vendors || []).map(async (vendor) => {
+        const { data: products, error: productError } = await supabase
+          .from('products')
+          .select('id')
+          .eq('vendor_id', vendor.id)
+          .eq('is_active', true);
+
         const { password_hash, ...vendorWithoutPassword } = vendor;
-        return vendorWithoutPassword;
-      }) || [];
+        
+        return {
+          ...vendorWithoutPassword,
+          product_count: products?.length || 0,
+          is_approved: vendor.vendor_profiles?.[0]?.is_approved || false,
+          business_name: vendor.vendor_profiles?.[0]?.business_name,
+          business_type: vendor.vendor_profiles?.[0]?.business_type,
+          brand_name: vendor.vendor_profiles?.[0]?.brand_name,
+          contact_email: vendor.vendor_profiles?.[0]?.contact_email,
+          bio: vendor.vendor_profiles?.[0]?.bio
+        };
+      }));
+
+      return vendorsWithCounts;
     } catch (error) {
       console.error('Get all vendors error:', error);
       return [];

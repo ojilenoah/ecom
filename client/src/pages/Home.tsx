@@ -176,7 +176,7 @@ export default function Home() {
         total={cartTotal}
       />
 
-      {currentUser && currentUser.role === 'user' && (
+      {currentUser && (
         <OrderTrackingModal
           isOpen={isOrderTrackingOpen}
           onClose={() => setIsOrderTrackingOpen(false)}
