@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Settings, X, BarChart3, Users, Store, Package, Sliders, UserPlus, ShoppingCart, Check, Ban, Edit, Trash2, Truck } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -55,6 +55,81 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
     queryKey: ['/api/admin/products'],
     enabled: activeSection === 'products',
   });
+
+  const { data: settings = {} } = useQuery<any>({
+    queryKey: ['/api/admin/settings'],
+    enabled: activeSection === 'settings',
+  });
+
+  const [settingsForm, setSettingsForm] = useState({
+    maintenance_mode: false,
+    allow_user_registration: true,
+    require_vendor_approval: true,
+    platform_commission: '5',
+    minimum_order_amount: '10.00',
+    smtp_host: 'smtp.gmail.com',
+    smtp_port: '587',
+    from_email: 'noreply@softshop.com',
+  });
+
+  // Update form when settings are loaded
+  useEffect(() => {
+    if (settings && Object.keys(settings).length > 0) {
+      setSettingsForm({
+        maintenance_mode: settings.maintenance_mode === 'true',
+        allow_user_registration: settings.allow_user_registration === 'true',
+        require_vendor_approval: settings.require_vendor_approval === 'true',
+        platform_commission: settings.platform_commission || '5',
+        minimum_order_amount: settings.minimum_order_amount || '10.00',
+        smtp_host: settings.smtp_host || 'smtp.gmail.com',
+        smtp_port: settings.smtp_port || '587',
+        from_email: settings.from_email || 'noreply@softshop.com',
+      });
+    }
+  }, [settings]);
+
+  const updateSettingsMutation = useMutation({
+    mutationFn: async (updatedSettings: any) => {
+      return apiRequest('PUT', '/api/admin/settings', updatedSettings);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/settings'] });
+      toast({
+        title: 'Settings saved',
+        description: 'Platform settings have been updated successfully.',
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Save failed',
+        description: 'Failed to save settings. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  });
+
+  const handleSettingsChange = (key: string, value: any) => {
+    setSettingsForm(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
+  const saveSettings = () => {
+    // Convert form data to API format
+    const settingsToSave = {
+      maintenance_mode: settingsForm.maintenance_mode.toString(),
+      allow_user_registration: settingsForm.allow_user_registration.toString(),
+      require_vendor_approval: settingsForm.require_vendor_approval.toString(),
+      platform_commission: settingsForm.platform_commission,
+      minimum_order_amount: settingsForm.minimum_order_amount,
+      smtp_host: settingsForm.smtp_host,
+      smtp_port: settingsForm.smtp_port,
+      from_email: settingsForm.from_email,
+    };
+    
+    updateSettingsMutation.mutate(settingsToSave);
+  };
 
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
@@ -535,7 +610,13 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                       <Label htmlFor="maintenance">Maintenance Mode</Label>
                       <p className="text-sm text-gray-500">Enable maintenance mode for platform updates</p>
                     </div>
-                    <input type="checkbox" className="toggle" />
+                    <input 
+                      type="checkbox" 
+                      id="maintenance"
+                      checked={settingsForm.maintenance_mode}
+                      onChange={(e) => handleSettingsChange('maintenance_mode', e.target.checked)}
+                      className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded" 
+                    />
                   </div>
                   
                   <div className="flex items-center justify-between">
@@ -543,7 +624,13 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                       <Label htmlFor="registration">Allow User Registration</Label>
                       <p className="text-sm text-gray-500">Allow new users to register accounts</p>
                     </div>
-                    <input type="checkbox" defaultChecked className="toggle" />
+                    <input 
+                      type="checkbox" 
+                      id="registration"
+                      checked={settingsForm.allow_user_registration}
+                      onChange={(e) => handleSettingsChange('allow_user_registration', e.target.checked)}
+                      className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded" 
+                    />
                   </div>
                   
                   <div className="flex items-center justify-between">
@@ -551,7 +638,13 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                       <Label htmlFor="vendor-approval">Require Vendor Approval</Label>
                       <p className="text-sm text-gray-500">Manually approve new vendor applications</p>
                     </div>
-                    <input type="checkbox" defaultChecked className="toggle" />
+                    <input 
+                      type="checkbox" 
+                      id="vendor-approval"
+                      checked={settingsForm.require_vendor_approval}
+                      onChange={(e) => handleSettingsChange('require_vendor_approval', e.target.checked)}
+                      className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded" 
+                    />
                   </div>
                 </div>
               </div>
@@ -562,11 +655,23 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="commission">Platform Commission (%)</Label>
-                    <Input id="commission" type="number" placeholder="5" className="mt-1" />
+                    <Input 
+                      id="commission" 
+                      type="number" 
+                      value={settingsForm.platform_commission}
+                      onChange={(e) => handleSettingsChange('platform_commission', e.target.value)}
+                      className="mt-1" 
+                    />
                   </div>
                   <div>
                     <Label htmlFor="min-order">Minimum Order Amount</Label>
-                    <Input id="min-order" type="number" placeholder="10.00" className="mt-1" />
+                    <Input 
+                      id="min-order" 
+                      type="number" 
+                      value={settingsForm.minimum_order_amount}
+                      onChange={(e) => handleSettingsChange('minimum_order_amount', e.target.value)}
+                      className="mt-1" 
+                    />
                   </div>
                 </div>
               </div>
@@ -577,24 +682,43 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                 <div className="space-y-4">
                   <div>
                     <Label htmlFor="smtp-host">SMTP Host</Label>
-                    <Input id="smtp-host" placeholder="smtp.gmail.com" className="mt-1" />
+                    <Input 
+                      id="smtp-host" 
+                      value={settingsForm.smtp_host}
+                      onChange={(e) => handleSettingsChange('smtp_host', e.target.value)}
+                      className="mt-1" 
+                    />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="smtp-port">SMTP Port</Label>
-                      <Input id="smtp-port" placeholder="587" className="mt-1" />
+                      <Input 
+                        id="smtp-port" 
+                        value={settingsForm.smtp_port}
+                        onChange={(e) => handleSettingsChange('smtp_port', e.target.value)}
+                        className="mt-1" 
+                      />
                     </div>
                     <div>
                       <Label htmlFor="from-email">From Email</Label>
-                      <Input id="from-email" placeholder="noreply@softshop.com" className="mt-1" />
+                      <Input 
+                        id="from-email" 
+                        value={settingsForm.from_email}
+                        onChange={(e) => handleSettingsChange('from_email', e.target.value)}
+                        className="mt-1" 
+                      />
                     </div>
                   </div>
                 </div>
               </div>
               
               <div className="flex justify-end">
-                <Button className="bg-emerald-500 hover:bg-emerald-600 text-white">
-                  Save Settings
+                <Button 
+                  onClick={saveSettings}
+                  disabled={updateSettingsMutation.isPending}
+                  className="bg-emerald-500 hover:bg-emerald-600 text-white"
+                >
+                  {updateSettingsMutation.isPending ? 'Saving...' : 'Save Settings'}
                 </Button>
               </div>
             </div>
