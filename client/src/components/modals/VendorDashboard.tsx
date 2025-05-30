@@ -501,6 +501,18 @@ export function VendorDashboard({ isOpen, onClose }: VendorDashboardProps) {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Vendor Profile Edit Modal */}
+      <VendorProfileModal
+        isOpen={showProfileEdit}
+        onClose={() => setShowProfileEdit(false)}
+      />
+
+      {/* Order Tracking Modal */}
+      <OrderTrackingModal
+        isOpen={showOrderTracking}
+        onClose={() => setShowOrderTracking(false)}
+      />
     </Dialog>
   );
 }

@@ -53,6 +53,8 @@ export interface IStorage {
 
   // Vendor
   getVendorStats(vendorId: string): Promise<any>;
+  getVendorProfile(vendorId: string): Promise<any>;
+  updateVendorProfile(vendorId: string, updates: any): Promise<any>;
 
   // Admin
   getAdminStats(): Promise<any>;
@@ -634,6 +636,89 @@ export class SupabaseStorage implements IStorage {
         products: 0,
         rating: "0.0"
       };
+    }
+  }
+
+  async getVendorProfile(vendorId: string): Promise<any> {
+    try {
+      const supabase = getSupabaseClient();
+      
+      const { data: profile, error } = await supabase
+        .from('vendor_profiles')
+        .select('*')
+        .eq('user_id', vendorId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // Not found error
+        throw new Error(error.message);
+      }
+
+      return profile || {
+        business_name: '',
+        description: '',
+        contact_phone: '',
+        business_address: '',
+        website: '',
+        business_email: ''
+      };
+    } catch (error) {
+      console.error('Get vendor profile error:', error);
+      return {
+        business_name: '',
+        description: '',
+        contact_phone: '',
+        business_address: '',
+        website: '',
+        business_email: ''
+      };
+    }
+  }
+
+  async updateVendorProfile(vendorId: string, updates: any): Promise<any> {
+    try {
+      const supabase = getSupabaseClient();
+      
+      // First try to update existing profile
+      const { data: existingProfile, error: fetchError } = await supabase
+        .from('vendor_profiles')
+        .select('id')
+        .eq('user_id', vendorId)
+        .single();
+
+      if (existingProfile) {
+        // Update existing profile
+        const { data: profile, error } = await supabase
+          .from('vendor_profiles')
+          .update(updates)
+          .eq('user_id', vendorId)
+          .select()
+          .single();
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        return profile;
+      } else {
+        // Create new profile
+        const { data: profile, error } = await supabase
+          .from('vendor_profiles')
+          .insert({
+            user_id: vendorId,
+            ...updates
+          })
+          .select()
+          .single();
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        return profile;
+      }
+    } catch (error) {
+      console.error('Update vendor profile error:', error);
+      throw new Error('Failed to update vendor profile');
     }
   }
 

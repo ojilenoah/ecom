@@ -36,14 +36,14 @@ export function VendorProfileModal({ isOpen, onClose }: VendorProfileModalProps)
 
   // Update form when profile data loads
   useEffect(() => {
-    if (vendorProfile) {
+    if (vendorProfile && typeof vendorProfile === 'object') {
       setProfileData({
-        business_name: vendorProfile.business_name || '',
-        description: vendorProfile.description || '',
-        contact_phone: vendorProfile.contact_phone || '',
-        business_address: vendorProfile.business_address || '',
-        website: vendorProfile.website || '',
-        business_email: vendorProfile.business_email || ''
+        business_name: (vendorProfile as any).business_name || '',
+        description: (vendorProfile as any).description || '',
+        contact_phone: (vendorProfile as any).contact_phone || '',
+        business_address: (vendorProfile as any).business_address || '',
+        website: (vendorProfile as any).website || '',
+        business_email: (vendorProfile as any).business_email || ''
       });
     }
   }, [vendorProfile]);

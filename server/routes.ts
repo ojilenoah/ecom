@@ -270,6 +270,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Vendor profile routes
+  app.get("/api/vendor/profile", async (req, res) => {
+    try {
+      const userId = req.headers['user-id'] as string;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const profile = await storage.getVendorProfile(userId);
+      res.json(profile);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch vendor profile" });
+    }
+  });
+
+  app.put("/api/vendor/profile", async (req, res) => {
+    try {
+      const userId = req.headers['user-id'] as string;
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      const profile = await storage.updateVendorProfile(userId, req.body);
+      res.json(profile);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update vendor profile" });
+    }
+  });
+
   app.get("/api/vendor/products", async (req, res) => {
     try {
       const userId = req.headers['user-id'] as string;
