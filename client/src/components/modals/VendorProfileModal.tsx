@@ -21,11 +21,11 @@ export function VendorProfileModal({ isOpen, onClose }: VendorProfileModalProps)
   
   const [profileData, setProfileData] = useState({
     business_name: '',
-    description: '',
-    contact_phone: '',
+    bio: '',
+    phone_number: '',
     business_address: '',
     website: '',
-    business_email: ''
+    contact_email: ''
   });
 
   // Get current vendor profile
@@ -39,11 +39,11 @@ export function VendorProfileModal({ isOpen, onClose }: VendorProfileModalProps)
     if (vendorProfile && typeof vendorProfile === 'object') {
       setProfileData({
         business_name: (vendorProfile as any).business_name || '',
-        description: (vendorProfile as any).description || '',
-        contact_phone: (vendorProfile as any).contact_phone || '',
+        bio: (vendorProfile as any).bio || '',
+        phone_number: (vendorProfile as any).phone_number || '',
         business_address: (vendorProfile as any).business_address || '',
         website: (vendorProfile as any).website || '',
-        business_email: (vendorProfile as any).business_email || ''
+        contact_email: (vendorProfile as any).contact_email || ''
       });
     }
   }, [vendorProfile]);
@@ -128,29 +128,29 @@ export function VendorProfileModal({ isOpen, onClose }: VendorProfileModalProps)
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="business_email" className="flex items-center space-x-2">
+                  <Label htmlFor="contact_email" className="flex items-center space-x-2">
                     <Mail className="h-4 w-4" />
                     <span>Business Email</span>
                   </Label>
                   <Input
-                    id="business_email"
+                    id="contact_email"
                     type="email"
-                    value={profileData.business_email}
-                    onChange={(e) => handleInputChange('business_email', e.target.value)}
+                    value={profileData.contact_email}
+                    onChange={(e) => handleInputChange('contact_email', e.target.value)}
                     placeholder="business@company.com"
                     className="bg-white dark:bg-gray-800"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="contact_phone" className="flex items-center space-x-2">
+                  <Label htmlFor="phone_number" className="flex items-center space-x-2">
                     <Phone className="h-4 w-4" />
                     <span>Contact Phone</span>
                   </Label>
                   <Input
-                    id="contact_phone"
-                    value={profileData.contact_phone}
-                    onChange={(e) => handleInputChange('contact_phone', e.target.value)}
+                    id="phone_number"
+                    value={profileData.phone_number}
+                    onChange={(e) => handleInputChange('phone_number', e.target.value)}
                     placeholder="+1 (555) 123-4567"
                     className="bg-white dark:bg-gray-800"
                   />
@@ -186,14 +186,14 @@ export function VendorProfileModal({ isOpen, onClose }: VendorProfileModalProps)
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description" className="flex items-center space-x-2">
+                <Label htmlFor="bio" className="flex items-center space-x-2">
                   <User className="h-4 w-4" />
                   <span>Business Description</span>
                 </Label>
                 <textarea
-                  id="description"
-                  value={profileData.description}
-                  onChange={(e) => handleInputChange('description', e.target.value)}
+                  id="bio"
+                  value={profileData.bio}
+                  onChange={(e) => handleInputChange('bio', e.target.value)}
                   placeholder="Tell customers about your business..."
                   rows={4}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"

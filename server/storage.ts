@@ -761,7 +761,7 @@ export class SupabaseStorage implements IStorage {
       const supabase = getSupabaseClient();
       
       // Filter out fields that don't exist in the current schema
-      const allowedFields = ['brand_name', 'logo_url', 'contact_email', 'bio', 'is_approved'];
+      const allowedFields = ['brand_name', 'business_name', 'business_type', 'business_address', 'phone_number', 'logo_url', 'contact_email', 'bio', 'is_approved'];
       const filteredUpdates = Object.keys(updates)
         .filter(key => allowedFields.includes(key))
         .reduce((obj, key) => {
