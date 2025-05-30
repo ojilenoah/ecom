@@ -44,7 +44,12 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
   const { data: allVendors = [] } = useQuery<any[]>({
     queryKey: ['/api/admin/vendors'],
     enabled: activeSection === 'vendors',
+    staleTime: 0,
+    gcTime: 0
   });
+
+  // Debug vendor data
+  console.log('Vendor data received:', allVendors.map(v => ({ id: v.id, name: v.name, is_approved: v.is_approved })));
 
   const { data: allProducts = [] } = useQuery<any[]>({
     queryKey: ['/api/admin/products'],

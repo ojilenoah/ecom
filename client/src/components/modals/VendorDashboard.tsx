@@ -505,7 +505,7 @@ export function VendorDashboard({ isOpen, onClose }: VendorDashboardProps) {
                       <SelectTrigger className="mt-1">
                         <SelectValue placeholder="Select a category" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="z-[9999]" position="popper">
                         {categories.map((category) => (
                           <SelectItem key={category} value={category}>
                             {category}

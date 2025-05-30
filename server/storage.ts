@@ -973,7 +973,7 @@ export class SupabaseStorage implements IStorage {
 
         const { password_hash, ...vendorWithoutPassword } = vendor;
         
-        const vendorProfile = vendor.vendor_profiles?.[0];
+        const vendorProfile = vendor.vendor_profiles;
         return {
           ...vendorWithoutPassword,
           product_count: products?.length || 0,
