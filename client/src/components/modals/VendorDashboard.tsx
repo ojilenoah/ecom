@@ -150,6 +150,15 @@ export function VendorDashboard({ isOpen, onClose }: VendorDashboardProps) {
   });
 
   const handleAddProduct = () => {
+    if (!vendorProfile?.is_approved) {
+      toast({
+        title: 'Account Not Approved',
+        description: 'Your vendor account needs to be approved before you can list products.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
     setShowAddProduct(true);
     setEditingProduct(null);
     setProductForm({
@@ -245,6 +254,27 @@ export function VendorDashboard({ isOpen, onClose }: VendorDashboardProps) {
               </div>
             </div>
             
+            {/* Approval Status Banner */}
+            <div className="mb-6">
+              {vendorProfile?.is_approved ? (
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 flex items-center space-x-3">
+                  <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  <div>
+                    <p className="font-medium text-green-800 dark:text-green-200">Account Approved</p>
+                    <p className="text-sm text-green-600 dark:text-green-400">You can list and sell products on the platform.</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl p-4 flex items-center space-x-3">
+                  <Clock className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                  <div>
+                    <p className="font-medium text-orange-800 dark:text-orange-200">Pending Approval</p>
+                    <p className="text-sm text-orange-600 dark:text-orange-400">Your account is under review. You'll be able to list products once approved by an administrator.</p>
+                  </div>
+                </div>
+              )}
+            </div>
+            
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
               <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-2xl p-6 text-white">
@@ -293,7 +323,13 @@ export function VendorDashboard({ isOpen, onClose }: VendorDashboardProps) {
               <h3 className="text-xl font-bold">Your Products</h3>
               <Button 
                 onClick={handleAddProduct}
-                className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-xl flex items-center space-x-2"
+                disabled={!vendorProfile?.is_approved}
+                className={`px-4 py-2 rounded-xl flex items-center space-x-2 ${
+                  vendorProfile?.is_approved 
+                    ? 'bg-emerald-500 hover:bg-emerald-600 text-white' 
+                    : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                }`}
+                title={!vendorProfile?.is_approved ? 'Account must be approved to add products' : ''}
               >
                 <Plus className="h-4 w-4" />
                 <span>Add Product</span>
@@ -306,7 +342,16 @@ export function VendorDashboard({ isOpen, onClose }: VendorDashboardProps) {
                 <div className="text-center py-12">
                   <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-500 mb-4">No products yet</p>
-                  <Button onClick={handleAddProduct} className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl">
+                  <Button 
+                    onClick={handleAddProduct} 
+                    disabled={!vendorProfile?.is_approved}
+                    className={`rounded-xl ${
+                      vendorProfile?.is_approved 
+                        ? 'bg-emerald-500 hover:bg-emerald-600 text-white' 
+                        : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+                    }`}
+                    title={!vendorProfile?.is_approved ? 'Account must be approved to add products' : ''}
+                  >
                     Add Your First Product
                   </Button>
                 </div>
