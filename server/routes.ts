@@ -438,6 +438,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/admin/vendors/:id/approval", async (req, res) => {
+    try {
+      const vendorId = req.params.id;
+      const { is_approved } = req.body;
+      
+      await storage.updateVendorApproval(vendorId, is_approved);
+      res.json({ message: "Vendor approval status updated successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update vendor approval status" });
+    }
+  });
+
   // Settings routes  
   app.get("/api/admin/settings", async (req, res) => {
     try {

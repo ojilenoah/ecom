@@ -69,6 +69,9 @@ export interface IStorage {
   // Settings
   getAllSettings(): Promise<any>;
   updateSettings(settings: any): Promise<void>;
+
+  // Vendor approval
+  updateVendorApproval(vendorId: string, isApproved: boolean): Promise<void>;
 }
 
 export class SupabaseStorage implements IStorage {
@@ -1112,6 +1115,25 @@ export class SupabaseStorage implements IStorage {
     } catch (error) {
       console.error('Update settings error:', error);
       throw new Error('Failed to update settings');
+    }
+  }
+
+  async updateVendorApproval(vendorId: string, isApproved: boolean): Promise<void> {
+    try {
+      const supabase = getSupabaseClient();
+      
+      const { error } = await supabase
+        .from('vendor_profiles')
+        .update({ is_approved: isApproved, updated_at: new Date().toISOString() })
+        .eq('user_id', vendorId);
+
+      if (error) {
+        console.error('Update vendor approval error:', error);
+        throw error;
+      }
+    } catch (error) {
+      console.error('Update vendor approval error:', error);
+      throw error;
     }
   }
 }

@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Store, X, Plus, Edit, Trash2, DollarSign, ShoppingCart, Package, Star, User, Truck } from 'lucide-react';
+import { Store, X, Plus, Edit, Trash2, DollarSign, ShoppingCart, Package, Star, User, Truck, AlertCircle, CheckCircle, Clock } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -60,6 +60,11 @@ export function VendorDashboard({ isOpen, onClose }: VendorDashboardProps) {
 
   const { data: vendorProducts = [] } = useQuery<any[]>({
     queryKey: ['/api/vendor/products'],
+    enabled: !!currentUser && currentUser.role === 'vendor',
+  });
+
+  const { data: vendorProfile } = useQuery<any>({
+    queryKey: ['/api/vendor/profile'],
     enabled: !!currentUser && currentUser.role === 'vendor',
   });
 

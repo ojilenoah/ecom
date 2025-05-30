@@ -66,6 +66,27 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
     },
   });
 
+  const updateVendorApprovalMutation = useMutation({
+    mutationFn: async ({ vendorId, isApproved }: { vendorId: string; isApproved: boolean }) => {
+      return apiRequest('PATCH', `/api/admin/vendors/${vendorId}/approval`, { is_approved: isApproved });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/vendors'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
+      toast({
+        title: 'Vendor status updated',
+        description: 'Vendor approval status has been updated successfully.',
+      });
+    },
+    onError: () => {
+      toast({
+        title: 'Update failed',
+        description: 'Failed to update vendor approval status.',
+        variant: 'destructive',
+      });
+    }
+  });
+
   const navItems = [
     { id: 'dashboard' as AdminSection, label: 'Dashboard', icon: BarChart3 },
     { id: 'users' as AdminSection, label: 'Users', icon: Users },
@@ -235,70 +256,192 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
         );
       case 'vendors':
         return (
-          <div>
-            <h2 className="text-2xl font-bold mb-6">Vendor Management</h2>
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <h2 className="text-2xl font-bold">Vendor Management</h2>
+              <div className="flex flex-col sm:flex-row gap-2 text-sm">
+                <Badge variant="outline" className="w-fit">
+                  {allVendors.filter((v: any) => v.is_approved).length} Approved
+                </Badge>
+                <Badge variant="outline" className="w-fit text-orange-600 border-orange-600">
+                  {allVendors.filter((v: any) => !v.is_approved).length} Pending
+                </Badge>
+              </div>
+            </div>
             
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-6">
-              <div className="flex justify-between items-center mb-6">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-3 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                 <h3 className="text-lg font-semibold">All Vendors ({allVendors.length})</h3>
               </div>
               
-              <div className="overflow-x-auto">
-                <table className="w-full">
+              {/* Mobile-friendly cards for small screens */}
+              <div className="block sm:hidden space-y-4">
+                {allVendors.map((vendor: any) => (
+                  <div key={vendor.id} className="bg-white dark:bg-gray-700 rounded-xl p-4 border">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-blue-100 dark:bg-blue-800 rounded-full flex items-center justify-center">
+                          <Store className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{vendor.name || 'Unknown'}</p>
+                          <p className="text-sm text-gray-500">{vendor.email}</p>
+                        </div>
+                      </div>
+                      <Badge 
+                        variant="outline" 
+                        className={vendor.is_approved 
+                          ? "text-green-600 border-green-600" 
+                          : "text-orange-600 border-orange-600"
+                        }
+                      >
+                        {vendor.is_approved ? 'Approved' : 'Pending'}
+                      </Badge>
+                    </div>
+                    
+                    <div className="space-y-2 mb-4">
+                      <div>
+                        <span className="text-sm text-gray-500">Business: </span>
+                        <span className="text-sm">{vendor.business_name || 'N/A'}</span>
+                      </div>
+                      <div>
+                        <span className="text-sm text-gray-500">Products: </span>
+                        <span className="text-sm">{vendor.product_count || 0}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-2">
+                      {!vendor.is_approved ? (
+                        <Button
+                          size="sm"
+                          onClick={() => updateVendorApprovalMutation.mutate({ 
+                            vendorId: vendor.id, 
+                            isApproved: true 
+                          })}
+                          disabled={updateVendorApprovalMutation.isPending}
+                          className="bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1"
+                        >
+                          <Check className="h-3 w-3 mr-1" />
+                          Approve
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => updateVendorApprovalMutation.mutate({ 
+                            vendorId: vendor.id, 
+                            isApproved: false 
+                          })}
+                          disabled={updateVendorApprovalMutation.isPending}
+                          className="text-orange-600 border-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900 text-xs px-3 py-1"
+                        >
+                          <Ban className="h-3 w-3 mr-1" />
+                          Revoke
+                        </Button>
+                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => deleteUserMutation.mutate(vendor.id)}
+                        disabled={deleteUserMutation.isPending}
+                        className="text-red-600 border-red-600 hover:bg-red-50 dark:hover:bg-red-900 text-xs px-3 py-1"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Table for larger screens */}
+              <div className="hidden sm:block overflow-x-auto">
+                <table className="w-full min-w-full">
                   <thead>
                     <tr className="border-b border-gray-200 dark:border-gray-700">
-                      <th className="text-left py-3 px-4 font-semibold">Vendor</th>
-                      <th className="text-left py-3 px-4 font-semibold">Email</th>
-                      <th className="text-left py-3 px-4 font-semibold">Business</th>
-                      <th className="text-left py-3 px-4 font-semibold">Products</th>
-                      <th className="text-left py-3 px-4 font-semibold">Status</th>
-                      <th className="text-left py-3 px-4 font-semibold">Actions</th>
+                      <th className="text-left py-3 px-2 lg:px-4 font-semibold text-sm">Vendor</th>
+                      <th className="text-left py-3 px-2 lg:px-4 font-semibold text-sm">Email</th>
+                      <th className="text-left py-3 px-2 lg:px-4 font-semibold text-sm">Business</th>
+                      <th className="text-left py-3 px-2 lg:px-4 font-semibold text-sm">Products</th>
+                      <th className="text-left py-3 px-2 lg:px-4 font-semibold text-sm">Status</th>
+                      <th className="text-left py-3 px-2 lg:px-4 font-semibold text-sm">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {allVendors.map((vendor: any) => (
-                      <tr key={vendor.id} className="border-b border-gray-100 dark:border-gray-700">
-                        <td className="py-4 px-4">
+                      <tr key={vendor.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <td className="py-3 px-2 lg:px-4">
                           <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-blue-100 dark:bg-blue-800 rounded-full flex items-center justify-center">
-                              <Store className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                            <div className="w-8 h-8 lg:w-10 lg:h-10 bg-blue-100 dark:bg-blue-800 rounded-full flex items-center justify-center">
+                              <Store className="h-4 w-4 lg:h-5 lg:w-5 text-blue-600 dark:text-blue-400" />
                             </div>
                             <div>
-                              <p className="font-medium">{vendor.name || 'Unknown'}</p>
-                              <p className="text-sm text-gray-500">ID: {vendor.id.slice(0, 8)}</p>
+                              <p className="font-medium text-sm lg:text-base">{vendor.name || 'Unknown'}</p>
+                              <p className="text-xs text-gray-500">ID: {vendor.id.slice(0, 8)}</p>
                             </div>
                           </div>
                         </td>
-                        <td className="py-4 px-4">{vendor.email}</td>
-                        <td className="py-4 px-4">
+                        <td className="py-3 px-2 lg:px-4 text-sm">{vendor.email}</td>
+                        <td className="py-3 px-2 lg:px-4">
                           <div>
-                            <p className="font-medium">{vendor.business_name || 'N/A'}</p>
-                            <p className="text-sm text-gray-500">{vendor.business_type || 'General'}</p>
+                            <p className="font-medium text-sm">{vendor.business_name || 'N/A'}</p>
+                            <p className="text-xs text-gray-500">{vendor.business_type || 'General'}</p>
                           </div>
                         </td>
-                        <td className="py-4 px-4">
-                          <Badge variant="outline">
+                        <td className="py-3 px-2 lg:px-4">
+                          <Badge variant="outline" className="text-xs">
                             {vendor.product_count || 0} products
                           </Badge>
                         </td>
-                        <td className="py-4 px-4">
-                          <Badge variant="outline" className="text-green-600 border-green-600">
-                            Active
+                        <td className="py-3 px-2 lg:px-4">
+                          <Badge 
+                            variant="outline" 
+                            className={`text-xs ${vendor.is_approved 
+                              ? "text-green-600 border-green-600" 
+                              : "text-orange-600 border-orange-600"
+                            }`}
+                          >
+                            {vendor.is_approved ? 'Approved' : 'Pending'}
                           </Badge>
                         </td>
-                        <td className="py-4 px-4">
-                          <div className="flex space-x-2">
-                            <Button variant="outline" size="sm">
-                              <Edit className="h-4 w-4" />
-                            </Button>
+                        <td className="py-3 px-2 lg:px-4">
+                          <div className="flex space-x-1 lg:space-x-2">
+                            {!vendor.is_approved ? (
+                              <Button
+                                size="sm"
+                                onClick={() => updateVendorApprovalMutation.mutate({ 
+                                  vendorId: vendor.id, 
+                                  isApproved: true 
+                                })}
+                                disabled={updateVendorApprovalMutation.isPending}
+                                className="bg-green-500 hover:bg-green-600 text-white h-8 px-2 lg:px-3"
+                                title="Approve vendor"
+                              >
+                                <Check className="h-3 w-3 lg:h-4 lg:w-4" />
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => updateVendorApprovalMutation.mutate({ 
+                                  vendorId: vendor.id, 
+                                  isApproved: false 
+                                })}
+                                disabled={updateVendorApprovalMutation.isPending}
+                                className="text-orange-600 border-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900 h-8 px-2 lg:px-3"
+                                title="Revoke approval"
+                              >
+                                <Ban className="h-3 w-3 lg:h-4 lg:w-4" />
+                              </Button>
+                            )}
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => deleteUserMutation.mutate(vendor.id)}
                               disabled={deleteUserMutation.isPending}
-                              className="text-red-600 border-red-600 hover:bg-red-50 dark:hover:bg-red-900"
+                              className="text-red-600 border-red-600 hover:bg-red-50 dark:hover:bg-red-900 h-8 px-2 lg:px-3"
+                              title="Delete vendor"
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash2 className="h-3 w-3 lg:h-4 lg:w-4" />
                             </Button>
                           </div>
                         </td>
@@ -306,14 +449,14 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                     ))}
                   </tbody>
                 </table>
-                
-                {allVendors.length === 0 && (
-                  <div className="text-center py-8">
-                    <Store className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500">No vendors found</p>
-                  </div>
-                )}
               </div>
+              
+              {allVendors.length === 0 && (
+                <div className="text-center py-8">
+                  <Store className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500">No vendors found</p>
+                </div>
+              )}
             </div>
           </div>
         );
