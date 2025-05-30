@@ -973,16 +973,17 @@ export class SupabaseStorage implements IStorage {
 
         const { password_hash, ...vendorWithoutPassword } = vendor;
         
+        const vendorProfile = vendor.vendor_profiles?.[0];
         return {
           ...vendorWithoutPassword,
           product_count: products?.length || 0,
-          is_approved: vendor.vendor_profiles?.[0]?.is_approved || false,
-          business_name: vendor.vendor_profiles?.[0]?.brand_name || 'N/A',
+          is_approved: vendorProfile?.is_approved || false,
+          business_name: vendorProfile?.brand_name || 'N/A',
           business_type: 'General',
-          brand_name: vendor.vendor_profiles?.[0]?.brand_name,
-          contact_email: vendor.vendor_profiles?.[0]?.contact_email,
-          bio: vendor.vendor_profiles?.[0]?.bio,
-          logo_url: vendor.vendor_profiles?.[0]?.logo_url
+          brand_name: vendorProfile?.brand_name,
+          contact_email: vendorProfile?.contact_email,
+          bio: vendorProfile?.bio,
+          logo_url: vendorProfile?.logo_url
         };
       }));
 
