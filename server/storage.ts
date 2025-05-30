@@ -200,7 +200,10 @@ export class SupabaseStorage implements IStorage {
       const supabase = getSupabaseClient();
       const { data: user, error } = await supabase
         .from('users')
-        .select('*')
+        .select(`
+          *,
+          vendor_profiles(logo_url, brand_name)
+        `)
         .eq('id', id)
         .single();
 
@@ -208,7 +211,16 @@ export class SupabaseStorage implements IStorage {
         return null;
       }
 
-      return user;
+      // Include vendor profile in the response if it exists
+      const userWithProfile = {
+        ...user,
+        vendor_profile: user.vendor_profiles?.[0] || null
+      };
+
+      // Remove the vendor_profiles array to avoid confusion
+      delete userWithProfile.vendor_profiles;
+
+      return userWithProfile;
     } catch (error) {
       console.error('Get user error:', error);
       return null;
@@ -942,7 +954,7 @@ export class SupabaseStorage implements IStorage {
         .from('users')
         .select(`
           *,
-          vendor_profiles(brand_name, contact_email, bio, is_approved)
+          vendor_profiles(brand_name, contact_email, bio, is_approved, logo_url)
         `)
         .eq('role', 'vendor')
         .order('created_at', { ascending: false });
@@ -969,7 +981,8 @@ export class SupabaseStorage implements IStorage {
           business_type: 'General',
           brand_name: vendor.vendor_profiles?.[0]?.brand_name,
           contact_email: vendor.vendor_profiles?.[0]?.contact_email,
-          bio: vendor.vendor_profiles?.[0]?.bio
+          bio: vendor.vendor_profiles?.[0]?.bio,
+          logo_url: vendor.vendor_profiles?.[0]?.logo_url
         };
       }));
 

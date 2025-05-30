@@ -226,11 +226,25 @@ export function VendorDashboard({ isOpen, onClose }: VendorDashboardProps) {
           <div className="p-8">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center space-x-4">
-                <div className="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center">
-                  <Store className="h-8 w-8 text-white" />
+                <div className="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center overflow-hidden">
+                  {vendorProfile?.logo_url ? (
+                    <img 
+                      src={vendorProfile.logo_url} 
+                      alt={vendorProfile.brand_name || 'Vendor Logo'} 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        target.nextElementSibling?.classList.remove('hidden');
+                      }}
+                    />
+                  ) : null}
+                  <Store className={`h-8 w-8 text-white ${vendorProfile?.logo_url ? 'hidden' : ''}`} />
                 </div>
                 <div>
-                  <h2 className="text-3xl font-bold">Vendor Dashboard</h2>
+                  <h2 className="text-3xl font-bold">
+                    {vendorProfile?.brand_name ? `${vendorProfile.brand_name} Dashboard` : 'Vendor Dashboard'}
+                  </h2>
                   <p className="text-gray-600 dark:text-gray-400">Manage your products and sales</p>
                 </div>
               </div>

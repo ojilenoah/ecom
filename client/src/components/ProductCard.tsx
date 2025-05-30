@@ -14,7 +14,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
     queryKey: [`/api/products/${product.id}/rating`],
   });
 
-  const { data: vendorInfo } = useQuery<{ name: string; email: string }>({
+  const { data: vendorInfo } = useQuery<{ name: string; email: string; vendor_profile?: { logo_url?: string; brand_name?: string } }>({
     queryKey: [`/api/users/${product.vendor_id}`],
     enabled: !!product.vendor_id,
   });

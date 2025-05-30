@@ -326,17 +326,16 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                         </Button>
                       ) : (
                         <Button
-                          variant="outline"
                           size="sm"
                           onClick={() => updateVendorApprovalMutation.mutate({ 
                             vendorId: vendor.id, 
                             isApproved: false 
                           })}
                           disabled={updateVendorApprovalMutation.isPending}
-                          className="text-orange-600 border-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900 text-xs px-3 py-1"
+                          className="bg-red-500 hover:bg-red-600 text-white text-xs px-3 py-1"
                         >
-                          <Ban className="h-3 w-3 mr-1" />
-                          Revoke
+                          <X className="h-3 w-3 mr-1" />
+                          Disapprove
                         </Button>
                       )}
                       <Button
@@ -420,17 +419,16 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                               </Button>
                             ) : (
                               <Button
-                                variant="outline"
                                 size="sm"
                                 onClick={() => updateVendorApprovalMutation.mutate({ 
                                   vendorId: vendor.id, 
                                   isApproved: false 
                                 })}
                                 disabled={updateVendorApprovalMutation.isPending}
-                                className="text-orange-600 border-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900 h-8 px-2 lg:px-3"
-                                title="Revoke approval"
+                                className="bg-red-500 hover:bg-red-600 text-white h-8 px-2 lg:px-3"
+                                title="Disapprove vendor"
                               >
-                                <Ban className="h-3 w-3 lg:h-4 lg:w-4" />
+                                <X className="h-3 w-3 lg:h-4 lg:w-4" />
                               </Button>
                             )}
                             <Button
