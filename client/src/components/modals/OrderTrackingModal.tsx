@@ -31,6 +31,8 @@ export function OrderTrackingModal({ isOpen, onClose }: OrderTrackingModalProps)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/orders/user'] });
+      // Invalidate product ratings to show updated ratings
+      queryClient.invalidateQueries({ queryKey: ['/api/products'] });
       toast({
         title: 'Rating submitted',
         description: 'Thank you for your feedback!',

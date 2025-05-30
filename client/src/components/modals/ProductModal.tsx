@@ -33,6 +33,7 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/cart'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/cart/count'] });
       toast({
         title: 'Added to cart',
         description: `${product?.name} has been added to your cart.`,
