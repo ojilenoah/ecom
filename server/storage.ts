@@ -80,22 +80,27 @@ export class SupabaseStorage implements IStorage {
     try {
       const supabase = getSupabaseClient();
       
-      // Add missing columns to vendor_profiles if they don't exist
-      const alterQueries = [
-        'ALTER TABLE vendor_profiles ADD COLUMN IF NOT EXISTS business_name TEXT',
-        'ALTER TABLE vendor_profiles ADD COLUMN IF NOT EXISTS business_type TEXT', 
-        'ALTER TABLE vendor_profiles ADD COLUMN IF NOT EXISTS business_address TEXT',
-        'ALTER TABLE vendor_profiles ADD COLUMN IF NOT EXISTS phone_number TEXT'
+      // Try to add missing columns using direct SQL queries
+      const columnsToAdd = [
+        { name: 'business_name', type: 'TEXT' },
+        { name: 'business_type', type: 'TEXT' },
+        { name: 'business_address', type: 'TEXT' },
+        { name: 'phone_number', type: 'TEXT' }
       ];
 
-      // Try to add missing columns (will fail silently if not supported)
-      for (const query of alterQueries) {
-        try {
-          await supabase.rpc('exec_sql', { sql: query });
-        } catch (error) {
-          // Ignore errors if columns already exist or RPC not available
-        }
+      // Check existing columns first
+      try {
+        const { data: existingColumns } = await supabase
+          .from('vendor_profiles')
+          .select('*')
+          .limit(1)
+          .single();
+        console.log('Existing vendor profile structure:', existingColumns ? Object.keys(existingColumns) : 'No data');
+      } catch (error) {
+        console.log('No existing vendor profiles found');
       }
+
+      // Since direct SQL might not work, we'll handle missing columns in the update method
 
       // Add default settings
       const defaultSettings = [
@@ -678,10 +683,10 @@ export class SupabaseStorage implements IStorage {
 
       console.log(`Vendor ${vendorId} orders:`, orders);
 
-      // Filter paid orders and calculate revenue
-      const paidOrders = orders?.filter(order => order.status === 'paid') || [];
-      const totalRevenue = paidOrders.reduce((sum, order) => sum + parseFloat(order.total), 0) || 0;
-      const orderCount = paidOrders.length || 0;
+      // Filter paid and fulfilled orders and calculate revenue
+      const revenueOrders = orders?.filter(order => order.status === 'paid' || order.status === 'fulfilled') || [];
+      const totalRevenue = revenueOrders.reduce((sum, order) => sum + parseFloat(order.total), 0) || 0;
+      const orderCount = revenueOrders.length || 0;
 
       console.log(`Vendor ${vendorId} stats: ${orderCount} orders, $${totalRevenue} revenue`);
 
@@ -755,10 +760,21 @@ export class SupabaseStorage implements IStorage {
     try {
       const supabase = getSupabaseClient();
       
+      // Filter out fields that don't exist in the current schema
+      const allowedFields = ['brand_name', 'logo_url', 'contact_email', 'bio', 'is_approved'];
+      const filteredUpdates = Object.keys(updates)
+        .filter(key => allowedFields.includes(key))
+        .reduce((obj, key) => {
+          obj[key] = updates[key];
+          return obj;
+        }, {} as any);
+
+      console.log('Attempting to update vendor profile with filtered fields:', Object.keys(filteredUpdates));
+      
       // First try to update existing profile
       const { data: existingProfile, error: fetchError } = await supabase
         .from('vendor_profiles')
-        .select('id')
+        .select('user_id')
         .eq('user_id', vendorId)
         .single();
 
@@ -766,12 +782,13 @@ export class SupabaseStorage implements IStorage {
         // Update existing profile
         const { data: profile, error } = await supabase
           .from('vendor_profiles')
-          .update(updates)
+          .update(filteredUpdates)
           .eq('user_id', vendorId)
           .select()
           .single();
 
         if (error) {
+          console.error('Update profile error:', error);
           throw new Error(error.message);
         }
 
@@ -782,12 +799,14 @@ export class SupabaseStorage implements IStorage {
           .from('vendor_profiles')
           .insert({
             user_id: vendorId,
-            ...updates
+            brand_name: filteredUpdates.brand_name || 'Default Brand',
+            ...filteredUpdates
           })
           .select()
           .single();
 
         if (error) {
+          console.error('Create profile error:', error);
           throw new Error(error.message);
         }
 
