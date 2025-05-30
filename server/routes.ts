@@ -178,6 +178,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/orders/:orderId/rate", async (req, res) => {
+    try {
+      const userId = req.headers['user-id'] as string;
+      const { orderId } = req.params;
+      const { rating, comment } = req.body;
+
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+
+      if (!rating || rating < 1 || rating > 5) {
+        return res.status(400).json({ message: "Rating must be between 1 and 5" });
+      }
+
+      await storage.rateOrder(userId, orderId, rating, comment);
+      res.json({ message: "Rating submitted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to submit rating" });
+    }
+  });
+
   // User profile routes
   app.get("/api/user/profile", async (req, res) => {
     try {
