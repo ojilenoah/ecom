@@ -806,11 +806,16 @@ export class SupabaseStorage implements IStorage {
         return profile;
       } else {
         // Create new profile
+        // Check vendor approval settings
+        const settings = await this.getAllSettings();
+        const requireApproval = settings.require_vendor_approval === 'true';
+        
         const { data: profile, error } = await supabase
           .from('vendor_profiles')
           .insert({
             user_id: vendorId,
             brand_name: filteredUpdates.brand_name || 'Default Brand',
+            is_approved: !requireApproval, // Auto-approve if approval not required
             ...filteredUpdates
           })
           .select()

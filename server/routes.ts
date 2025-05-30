@@ -25,6 +25,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/auth/register", async (req, res) => {
     try {
+      // Check if user registration is allowed
+      const settings = await storage.getAllSettings();
+      if (settings.allow_user_registration === 'false') {
+        return res.status(403).json({ message: "User registration is currently disabled" });
+      }
+
       const userData = insertUserSchema.parse(req.body);
       const user = await storage.createUser(userData);
       
