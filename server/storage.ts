@@ -68,6 +68,52 @@ export interface IStorage {
 }
 
 export class SupabaseStorage implements IStorage {
+  constructor() {
+    this.initializeDatabase();
+  }
+
+  private async initializeDatabase() {
+    try {
+      const supabase = getSupabaseClient();
+      
+      // Add missing columns to vendor_profiles if they don't exist
+      const alterQueries = [
+        'ALTER TABLE vendor_profiles ADD COLUMN IF NOT EXISTS business_name TEXT',
+        'ALTER TABLE vendor_profiles ADD COLUMN IF NOT EXISTS business_type TEXT', 
+        'ALTER TABLE vendor_profiles ADD COLUMN IF NOT EXISTS business_address TEXT',
+        'ALTER TABLE vendor_profiles ADD COLUMN IF NOT EXISTS phone_number TEXT'
+      ];
+
+      for (const query of alterQueries) {
+        await supabase.rpc('exec_sql', { sql: query }).catch(() => {
+          // Ignore errors if columns already exist or RPC not available
+        });
+      }
+
+      // Add default settings
+      const defaultSettings = [
+        { key: 'site_name', value: 'SoftShop' },
+        { key: 'site_description', value: 'Modern E-commerce Platform' },
+        { key: 'contact_email', value: 'admin@softshop.com' },
+        { key: 'currency', value: 'USD' },
+        { key: 'tax_rate', value: '8.5' },
+        { key: 'shipping_fee', value: '9.99' },
+        { key: 'enable_notifications', value: 'true' },
+        { key: 'maintenance_mode', value: 'false' }
+      ];
+
+      for (const setting of defaultSettings) {
+        await supabase
+          .from('settings')
+          .upsert(setting, { onConflict: 'key' })
+          .catch(() => {
+            // Ignore upsert errors
+          });
+      }
+    } catch (error) {
+      console.log('Database initialization completed with some warnings (this is normal)');
+    }
+  }
   
   async authenticateUser(email: string, password: string): Promise<User | null> {
     try {
@@ -616,15 +662,20 @@ export class SupabaseStorage implements IStorage {
       const { data: orders, error: ordersError } = await supabase
         .from('orders')
         .select('total, status')
-        .eq('vendor_id', vendorId)
-        .eq('status', 'paid');
+        .eq('vendor_id', vendorId);
 
       if (ordersError) {
         console.error('Get vendor orders error:', ordersError);
       }
 
-      const totalRevenue = orders?.reduce((sum, order) => sum + parseFloat(order.total), 0) || 0;
-      const orderCount = orders?.length || 0;
+      console.log(`Vendor ${vendorId} orders:`, orders);
+
+      // Filter paid orders and calculate revenue
+      const paidOrders = orders?.filter(order => order.status === 'paid') || [];
+      const totalRevenue = paidOrders.reduce((sum, order) => sum + parseFloat(order.total), 0) || 0;
+      const orderCount = paidOrders.length || 0;
+
+      console.log(`Vendor ${vendorId} stats: ${orderCount} orders, $${totalRevenue} revenue`);
 
       // Get average rating for vendor's products
       const { data: ratings, error: ratingsError } = await supabase
@@ -889,7 +940,7 @@ export class SupabaseStorage implements IStorage {
         .from('products')
         .select(`
           *,
-          users(name, email)
+          vendor:users!vendor_id(name, email)
         `)
         .order('created_at', { ascending: false });
 

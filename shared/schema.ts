@@ -17,6 +17,10 @@ export const users = pgTable("users", {
 export const vendor_profiles = pgTable("vendor_profiles", {
   user_id: uuid("user_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),
   brand_name: text("brand_name").notNull(),
+  business_name: text("business_name"),
+  business_type: text("business_type"),
+  business_address: text("business_address"),
+  phone_number: text("phone_number"),
   logo_url: text("logo_url"),
   contact_email: text("contact_email"),
   bio: text("bio"),
