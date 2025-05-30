@@ -462,6 +462,8 @@ export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-7xl w-[95vw] max-h-[90vh] overflow-hidden bg-white/90 dark:bg-black/90 backdrop-blur-xl border border-white/20 shadow-xl shadow-emerald-500/10 ring-1 ring-emerald-400/20">
+        <DialogTitle className="sr-only">Admin Panel</DialogTitle>
+        <DialogDescription className="sr-only">System administration and control panel</DialogDescription>
         <div className="relative">
           
           <div className="flex flex-col lg:flex-row h-[80vh]">

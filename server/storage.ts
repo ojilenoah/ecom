@@ -348,7 +348,8 @@ export class SupabaseStorage implements IStorage {
             id,
             name,
             price,
-            image_url
+            image_url,
+            vendor_id
           )
         `)
         .eq('user_id', userId);
@@ -509,9 +510,9 @@ export class SupabaseStorage implements IStorage {
 
       // Create separate orders for each vendor
       const orders = [];
-      for (const [vendorId, vendorItems] of Object.entries(itemsByVendor)) {
+      for (const [vendorId, vendorItems] of Object.entries(itemsByVendor) as [string, any[]][]) {
         // Calculate total for this vendor
-        const vendorTotal = vendorItems.reduce((sum, item) => 
+        const vendorTotal = (vendorItems as any[]).reduce((sum: number, item: any) => 
           sum + (parseFloat(item.product.price) * item.quantity), 0
         );
 
