@@ -47,14 +47,7 @@ npm install
 ```
 
 3. Set up environment variables:
-Create a `.env` file in the root directory with the following variables:
-```env
-DATABASE_URL=your_postgresql_connection_string
-SUPABASE_URL=your_supabase_url
-SUPABASE_ANON_KEY=your_supabase_anon_key
-SESSION_SECRET=your_session_secret
-NODE_ENV=development
-```
+Your existing `.env` file already contains all necessary configuration. No additional setup required!
 
 4. Push database schema:
 ```bash
@@ -72,11 +65,7 @@ The application will be available at `http://localhost:5000`
 
 ### Vercel Deployment
 
-This project is optimized for Vercel deployment with zero configuration required.
-
-#### Prerequisites
-- A PostgreSQL database (Neon, Supabase, or any PostgreSQL provider)
-- Environment variables configured
+This project works out of the box with Vercel - no additional configuration needed!
 
 #### Deploy to Vercel
 
@@ -94,30 +83,9 @@ git push -u origin main
    - Go to [vercel.com](https://vercel.com)
    - Click "New Project"
    - Import your GitHub repository
-   - Vercel will automatically detect the configuration from `vercel.json`
+   - Click "Deploy" - that's it!
 
-3. **Configure Environment Variables:**
-   In your Vercel project dashboard, add the following environment variables:
-   ```
-   DATABASE_URL=your_postgresql_connection_string
-   SUPABASE_URL=your_supabase_url
-   SUPABASE_ANON_KEY=your_supabase_anon_key
-   SESSION_SECRET=your_session_secret
-   NODE_ENV=production
-   ```
-
-4. **Deploy:**
-   Click "Deploy" and Vercel will build and deploy your application automatically.
-
-#### Environment Variables Required for Production
-
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `DATABASE_URL` | PostgreSQL connection string | Yes |
-| `SUPABASE_URL` | Supabase project URL | Yes |
-| `SUPABASE_ANON_KEY` | Supabase anonymous key | Yes |
-| `SESSION_SECRET` | Secret key for session encryption | Yes |
-| `NODE_ENV` | Environment (set to 'production') | Yes |
+The app will automatically use your existing database connection and environment variables. Vercel will detect the optimized configuration and build everything correctly.
 
 ## 📝 Scripts
 
