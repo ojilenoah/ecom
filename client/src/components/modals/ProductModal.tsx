@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/compone
 import { Button } from '@/components/ui/button';
 import { Star, Store, Minus, Plus, ShoppingCart, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { Product } from '@shared/schema';
@@ -19,6 +19,18 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
   const { currentUser } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Get product rating
+  const { data: productRating } = useQuery<{ average_rating: number; review_count: number }>({
+    queryKey: ['/api/products', product?.id, 'rating'],
+    enabled: !!product?.id,
+  });
+
+  // Get vendor information
+  const { data: vendorInfo } = useQuery<{ name: string; email: string }>({
+    queryKey: ['/api/users', product?.vendor_id],
+    enabled: !!product?.vendor_id,
+  });
 
   // Reset quantity when product changes
   useEffect(() => {
@@ -96,11 +108,23 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
                   <div className="flex items-center space-x-2">
                     <div className="flex text-yellow-400">
                       {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-current" />
+                        <Star 
+                          key={i} 
+                          className={`h-4 w-4 ${
+                            i < Math.floor(productRating?.average_rating || 0) ? 'fill-current' : ''
+                          }`} 
+                        />
                       ))}
                     </div>
-                    <span className="text-sm text-gray-500">(4.8 • 24 reviews)</span>
+                    <span className="text-sm text-gray-500">
+                      ({productRating?.average_rating?.toFixed(1) || '0.0'} • {productRating?.review_count || 0} reviews)
+                    </span>
                   </div>
+                </div>
+                <div className="mb-4">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    Stock: {product.stock || 0} available
+                  </span>
                 </div>
               </div>
               
@@ -118,8 +142,8 @@ export function ProductModal({ product, isOpen, onClose }: ProductModalProps) {
                     <Store className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <p className="font-medium">Vendor Store</p>
-                    <p className="text-sm text-gray-500">4.9 ★ • 150+ products</p>
+                    <p className="font-medium">{vendorInfo?.name || 'Unknown Vendor'}</p>
+                    <p className="text-sm text-gray-500">{vendorInfo?.email || 'No contact info'}</p>
                   </div>
                 </div>
               </div>

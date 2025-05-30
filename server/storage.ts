@@ -488,26 +488,32 @@ export class SupabaseStorage implements IStorage {
   async createOrder(userId: string, orderData: any): Promise<Order> {
     try {
       const supabase = getSupabaseClient();
-      // Get cart items
+      // Get cart items with vendor information
       const cartItems = await this.getCartItems(userId);
       
       if (cartItems.length === 0) {
         throw new Error('Cart is empty');
       }
 
-      // Calculate total
+      // Calculate total and get vendor information
       const total = cartItems.reduce((sum, item) => 
         sum + (parseFloat(item.product.price) * item.quantity), 0
       );
 
-      // Create order
+      // Get the vendor_id from the first item (assuming single vendor per order for now)
+      const vendorId = cartItems[0]?.product?.vendor_id;
+
+      // Create order with proper payment status and vendor info
       const { data: order, error } = await supabase
         .from('orders')
         .insert({
           user_id: userId,
+          vendor_id: vendorId,
           items: cartItems,
           total: total.toString(),
-          status: 'pending'
+          status: 'paid', // Mark as paid immediately for demo
+          payment_method: orderData.paymentMethod || 'card',
+          billing_address: orderData.billingAddress
         })
         .select()
         .single();
@@ -516,18 +522,17 @@ export class SupabaseStorage implements IStorage {
         throw error;
       }
 
-      // Clear cart
+      // Clear cart after successful order
       await this.clearCart(userId);
 
-      // Simulate payment processing and status updates
+      // Auto-fulfill order after 30 seconds
       setTimeout(async () => {
-        await this.updateOrderStatus(order.id, 'paid');
-        
-        // Simulate fulfillment after 1 minute
-        setTimeout(async () => {
+        try {
           await this.updateOrderStatus(order.id, 'fulfilled');
-        }, 60000);
-      }, 2000);
+        } catch (error) {
+          console.error('Failed to auto-fulfill order:', error);
+        }
+      }, 30000);
 
       return order;
     } catch (error) {

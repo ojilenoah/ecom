@@ -14,6 +14,11 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
     queryKey: ['/api/products', product.id, 'rating'],
   });
 
+  const { data: vendorInfo } = useQuery<{ name: string; email: string }>({
+    queryKey: ['/api/users', product.vendor_id],
+    enabled: !!product.vendor_id,
+  });
+
   const averageRating = productRating?.average_rating || 0;
   const reviewCount = productRating?.review_count || 0;
 
@@ -37,7 +42,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
         <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2">
           {product.description}
         </p>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-1">
             <div className="flex text-yellow-400">
               {[...Array(5)].map((_, i) => (
@@ -54,6 +59,10 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
               {product.category}
             </Badge>
           )}
+        </div>
+        <div className="flex items-center justify-between text-xs text-gray-500">
+          <span>Stock: {product.stock || 0}</span>
+          <span>By: {vendorInfo?.name || 'Unknown Vendor'}</span>
         </div>
       </CardContent>
     </Card>
