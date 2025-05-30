@@ -940,7 +940,7 @@ export class SupabaseStorage implements IStorage {
         .from('users')
         .select(`
           *,
-          vendor_profiles(brand_name, business_name, business_type, contact_email, bio, is_approved)
+          vendor_profiles(brand_name, contact_email, bio, is_approved)
         `)
         .eq('role', 'vendor')
         .order('created_at', { ascending: false });
@@ -963,8 +963,8 @@ export class SupabaseStorage implements IStorage {
           ...vendorWithoutPassword,
           product_count: products?.length || 0,
           is_approved: vendor.vendor_profiles?.[0]?.is_approved || false,
-          business_name: vendor.vendor_profiles?.[0]?.business_name,
-          business_type: vendor.vendor_profiles?.[0]?.business_type,
+          business_name: vendor.vendor_profiles?.[0]?.brand_name || 'N/A',
+          business_type: 'General',
           brand_name: vendor.vendor_profiles?.[0]?.brand_name,
           contact_email: vendor.vendor_profiles?.[0]?.contact_email,
           bio: vendor.vendor_profiles?.[0]?.bio
