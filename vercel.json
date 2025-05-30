@@ -1,12 +1,18 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist/client",
-  "functions": {
-    "dist/index.js": {
-      "runtime": "@vercel/node@3.0.7"
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist/public"
+      }
+    },
+    {
+      "src": "dist/index.js",
+      "use": "@vercel/node"
     }
-  },
+  ],
   "routes": [
     {
       "src": "/api/(.*)",
@@ -14,11 +20,11 @@
     },
     {
       "src": "/(.*\\.(js|css|ico|png|jpg|jpeg|svg|gif|json)$)",
-      "dest": "/dist/client/$1"
+      "dest": "/$1"
     },
     {
       "src": "/(.*\\.pdf$)",
-      "dest": "/dist/client/$1",
+      "dest": "/$1",
       "headers": {
         "Content-Type": "application/pdf",
         "Content-Disposition": "attachment",
@@ -27,7 +33,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/dist/client/index.html"
+      "dest": "/index.html"
     }
   ]
 }
