@@ -134,17 +134,29 @@ export function Navbar({
                   )}
                   
                   {currentUser.role === 'vendor' && (
-                    <DropdownMenuItem onClick={onVendorDashboard}>
-                      <Store className="mr-2 h-4 w-4" />
-                      Vendor Dashboard
-                    </DropdownMenuItem>
+                    <>
+                      <DropdownMenuItem onClick={onVendorDashboard}>
+                        <Store className="mr-2 h-4 w-4" />
+                        Vendor Dashboard
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={onOrderTracking}>
+                        <Package className="mr-2 h-4 w-4" />
+                        Order Tracking
+                      </DropdownMenuItem>
+                    </>
                   )}
                   
                   {currentUser.role === 'admin' && (
-                    <DropdownMenuItem onClick={onAdminPanel}>
-                      <Settings className="mr-2 h-4 w-4" />
-                      Admin Panel
-                    </DropdownMenuItem>
+                    <>
+                      <DropdownMenuItem onClick={onAdminPanel}>
+                        <Settings className="mr-2 h-4 w-4" />
+                        Admin Panel
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={onOrderTracking}>
+                        <Package className="mr-2 h-4 w-4" />
+                        Order Tracking
+                      </DropdownMenuItem>
+                    </>
                   )}
                   
                   <DropdownMenuSeparator />

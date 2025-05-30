@@ -497,44 +497,61 @@ export class SupabaseStorage implements IStorage {
         throw new Error('Cart is empty');
       }
 
-      // Calculate total and get vendor information
-      const total = cartItems.reduce((sum, item) => 
-        sum + (parseFloat(item.product.price) * item.quantity), 0
-      );
+      // Group items by vendor to create separate orders for each vendor
+      const itemsByVendor = cartItems.reduce((acc, item) => {
+        const vendorId = item.product.vendor_id;
+        if (!acc[vendorId]) {
+          acc[vendorId] = [];
+        }
+        acc[vendorId].push(item);
+        return acc;
+      }, {} as { [vendorId: string]: any[] });
 
-      // Get the vendor_id from the first item (assuming single vendor per order for now)
-      const vendorId = cartItems[0]?.product?.vendor_id;
+      // Create separate orders for each vendor
+      const orders = [];
+      for (const [vendorId, vendorItems] of Object.entries(itemsByVendor)) {
+        // Calculate total for this vendor
+        const vendorTotal = vendorItems.reduce((sum, item) => 
+          sum + (parseFloat(item.product.price) * item.quantity), 0
+        );
 
-      // Create order with proper payment status and vendor info
-      const { data: order, error } = await supabase
-        .from('orders')
-        .insert({
-          user_id: userId,
-          vendor_id: vendorId,
-          items: cartItems,
-          total: total.toString(),
-          status: 'paid' // Mark as paid immediately for demo
-        })
-        .select()
-        .single();
+        console.log(`Creating order for vendor ${vendorId} with total ${vendorTotal}`);
 
-      if (error) {
-        throw error;
+        // Create order for this vendor
+        const { data: order, error } = await supabase
+          .from('orders')
+          .insert({
+            user_id: userId,
+            vendor_id: vendorId,
+            items: vendorItems,
+            total: vendorTotal.toString(),
+            status: 'paid' // Mark as paid immediately for demo
+          })
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Create order error for vendor:', vendorId, error);
+          throw error;
+        }
+
+        orders.push(order);
+
+        // Auto-fulfill order after 30 seconds
+        setTimeout(async () => {
+          try {
+            await this.updateOrderStatus(order.id, 'fulfilled');
+          } catch (error) {
+            console.error('Failed to auto-fulfill order:', error);
+          }
+        }, 30000);
       }
 
-      // Clear cart after successful order
+      // Clear cart after successful orders
       await this.clearCart(userId);
 
-      // Auto-fulfill order after 30 seconds
-      setTimeout(async () => {
-        try {
-          await this.updateOrderStatus(order.id, 'fulfilled');
-        } catch (error) {
-          console.error('Failed to auto-fulfill order:', error);
-        }
-      }, 30000);
-
-      return order;
+      // Return the first order (for compatibility)
+      return orders[0];
     } catch (error) {
       console.error('Create order error:', error);
       throw new Error('Failed to create order');
