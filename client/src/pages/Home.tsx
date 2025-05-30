@@ -22,6 +22,7 @@ export default function Home() {
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isOrderTrackingOpen, setIsOrderTrackingOpen] = useState(false);
+  const [cartTotal, setCartTotal] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const { currentUser } = useAuth();
@@ -49,7 +50,8 @@ export default function Home() {
     setSelectedCategory(category);
   };
 
-  const handleCheckout = () => {
+  const handleCheckout = (total: number) => {
+    setCartTotal(total);
     setIsCheckoutOpen(true);
   };
 
@@ -171,7 +173,7 @@ export default function Home() {
       <CheckoutModal
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
-        total={0} // TODO: Calculate actual total from cart
+        total={cartTotal}
       />
 
       {currentUser && currentUser.role === 'user' && (

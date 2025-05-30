@@ -9,7 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 interface CartModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onCheckout: () => void;
+  onCheckout: (total: number) => void;
 }
 
 interface CartItemWithProduct {
@@ -40,6 +40,7 @@ export function CartModal({ isOpen, onClose, onCheckout }: CartModalProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/cart'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/cart/count'] });
     },
   });
 
@@ -49,6 +50,7 @@ export function CartModal({ isOpen, onClose, onCheckout }: CartModalProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/cart'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/cart/count'] });
       toast({
         title: 'Item removed',
         description: 'Item has been removed from your cart.',
@@ -78,7 +80,7 @@ export function CartModal({ isOpen, onClose, onCheckout }: CartModalProps) {
       return;
     }
     onClose();
-    onCheckout();
+    onCheckout(total);
   };
 
   return (
