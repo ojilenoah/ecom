@@ -42,7 +42,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
         <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2">
           {product.description}
         </p>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-1">
             <div className="flex text-yellow-400">
               {[...Array(5)].map((_, i) => (
@@ -60,6 +60,23 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
             </Badge>
           )}
         </div>
+        {vendorInfo && (
+          <div className="flex items-center space-x-2 text-xs text-gray-500">
+            {vendorInfo.vendor_profile?.logo_url && (
+              <div className="w-4 h-4 rounded-full overflow-hidden bg-gray-200">
+                <img 
+                  src={vendorInfo.vendor_profile.logo_url} 
+                  alt="Vendor" 
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              </div>
+            )}
+            <span>by {vendorInfo.vendor_profile?.brand_name || vendorInfo.name}</span>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
