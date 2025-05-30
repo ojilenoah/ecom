@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { OrderTrackingModal } from './OrderTrackingModal';
 
 interface AdminPanelProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ type AdminSection = 'dashboard' | 'users' | 'vendors' | 'products' | 'settings';
 
 export function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
   const [activeSection, setActiveSection] = useState<AdminSection>('dashboard');
+  const [showOrderTracking, setShowOrderTracking] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
