@@ -20,11 +20,11 @@ export function VendorProfileModal({ isOpen, onClose }: VendorProfileModalProps)
   const queryClient = useQueryClient();
   
   const [profileData, setProfileData] = useState({
+    brand_name: '',
     business_name: '',
     bio: '',
     phone_number: '',
     business_address: '',
-    website: '',
     contact_email: ''
   });
 
@@ -38,11 +38,11 @@ export function VendorProfileModal({ isOpen, onClose }: VendorProfileModalProps)
   useEffect(() => {
     if (vendorProfile && typeof vendorProfile === 'object') {
       setProfileData({
+        brand_name: (vendorProfile as any).brand_name || '',
         business_name: (vendorProfile as any).business_name || '',
         bio: (vendorProfile as any).bio || '',
         phone_number: (vendorProfile as any).phone_number || '',
         business_address: (vendorProfile as any).business_address || '',
-        website: (vendorProfile as any).website || '',
         contact_email: (vendorProfile as any).contact_email || ''
       });
     }
@@ -114,6 +114,21 @@ export function VendorProfileModal({ isOpen, onClose }: VendorProfileModalProps)
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
+                  <Label htmlFor="brand_name" className="flex items-center space-x-2">
+                    <Building className="h-4 w-4" />
+                    <span>Brand Name *</span>
+                  </Label>
+                  <Input
+                    id="brand_name"
+                    value={profileData.brand_name}
+                    onChange={(e) => handleInputChange('brand_name', e.target.value)}
+                    placeholder="Your brand name"
+                    className="bg-white dark:bg-gray-800"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="business_name" className="flex items-center space-x-2">
                     <Building className="h-4 w-4" />
                     <span>Business Name</span>
@@ -156,19 +171,7 @@ export function VendorProfileModal({ isOpen, onClose }: VendorProfileModalProps)
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="website" className="flex items-center space-x-2">
-                    <Building className="h-4 w-4" />
-                    <span>Website</span>
-                  </Label>
-                  <Input
-                    id="website"
-                    value={profileData.website}
-                    onChange={(e) => handleInputChange('website', e.target.value)}
-                    placeholder="https://yourwebsite.com"
-                    className="bg-white dark:bg-gray-800"
-                  />
-                </div>
+
               </div>
 
               <div className="space-y-2">

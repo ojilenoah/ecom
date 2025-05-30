@@ -736,22 +736,22 @@ export class SupabaseStorage implements IStorage {
       }
 
       return profile || {
+        brand_name: '',
         business_name: '',
-        description: '',
-        contact_phone: '',
+        bio: '',
+        phone_number: '',
         business_address: '',
-        website: '',
-        business_email: ''
+        contact_email: ''
       };
     } catch (error) {
       console.error('Get vendor profile error:', error);
       return {
+        brand_name: '',
         business_name: '',
-        description: '',
-        contact_phone: '',
+        bio: '',
+        phone_number: '',
         business_address: '',
-        website: '',
-        business_email: ''
+        contact_email: ''
       };
     }
   }
