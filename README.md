@@ -169,4 +169,4 @@ If you encounter any issues during deployment or development:
 3. Verify that the database schema has been pushed using `npm run db:push`
 4. Check the Vercel deployment logs for specific error messages
 
-For additional support, please open an issue in the GitHub repository.
+For additional support, please open an issue in the GitHub repository."# ecom" 
