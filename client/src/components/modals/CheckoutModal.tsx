@@ -20,14 +20,7 @@ export function CheckoutModal({ isOpen, onClose, total }: CheckoutModalProps) {
     cardNumber: '',
     expiryDate: '',
     cvv: '',
-    nameOnCard: '',
-    billingAddress: {
-      street: '',
-      city: '',
-      state: '',
-      zipCode: '',
-      country: 'US'
-    }
+    nameOnCard: ''
   });
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -35,8 +28,7 @@ export function CheckoutModal({ isOpen, onClose, total }: CheckoutModalProps) {
   const checkoutMutation = useMutation({
     mutationFn: async () => {
       return apiRequest('POST', '/api/orders/checkout', {
-        paymentMethod: 'dummy',
-        billingAddress: paymentData.billingAddress
+        paymentMethod: 'dummy'
       });
     },
     onSuccess: (data) => {
@@ -160,61 +152,7 @@ export function CheckoutModal({ isOpen, onClose, total }: CheckoutModalProps) {
                 </div>
               </div>
 
-              {/* Simplified Billing Address */}
-              <div className="space-y-2">
-                <h3 className="font-semibold text-sm">Billing Address</h3>
-                
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <Input
-                      placeholder="Street Address"
-                      value={paymentData.billingAddress.street}
-                      onChange={(e) => setPaymentData(prev => ({ 
-                        ...prev, 
-                        billingAddress: { ...prev.billingAddress, street: e.target.value }
-                      }))}
-                      className="rounded-lg h-9"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Input
-                      placeholder="City"
-                      value={paymentData.billingAddress.city}
-                      onChange={(e) => setPaymentData(prev => ({ 
-                        ...prev, 
-                        billingAddress: { ...prev.billingAddress, city: e.target.value }
-                      }))}
-                      className="rounded-lg h-9"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Input
-                      placeholder="State"
-                      value={paymentData.billingAddress.state}
-                      onChange={(e) => setPaymentData(prev => ({ 
-                        ...prev, 
-                        billingAddress: { ...prev.billingAddress, state: e.target.value }
-                      }))}
-                      className="rounded-lg h-9"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Input
-                      placeholder="ZIP Code"
-                      value={paymentData.billingAddress.zipCode}
-                      onChange={(e) => setPaymentData(prev => ({ 
-                        ...prev, 
-                        billingAddress: { ...prev.billingAddress, zipCode: e.target.value }
-                      }))}
-                      className="rounded-lg h-9"
-                      required
-                    />
-                  </div>
-                </div>
-              </div>
+
               
               <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                 <Button 

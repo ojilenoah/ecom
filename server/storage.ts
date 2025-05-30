@@ -511,9 +511,7 @@ export class SupabaseStorage implements IStorage {
           vendor_id: vendorId,
           items: cartItems,
           total: total.toString(),
-          status: 'paid', // Mark as paid immediately for demo
-          payment_method: orderData.paymentMethod || 'card',
-          billing_address: orderData.billingAddress
+          status: 'paid' // Mark as paid immediately for demo
         })
         .select()
         .single();
